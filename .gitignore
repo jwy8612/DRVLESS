@@ -1,0 +1,8 @@
+app/src/*.o
+lib/src/*.o
+lib/*.so
+app/run
+out/
+si/
+lib/*.a
+.gitignore
