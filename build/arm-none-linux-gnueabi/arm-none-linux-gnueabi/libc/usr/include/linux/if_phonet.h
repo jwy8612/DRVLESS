@@ -12,8 +12,5 @@
 #define PHONET_MAX_MTU		65541	/* pn_length = 0xffff */
 #define PHONET_DEV_MTU		PHONET_MAX_MTU
 
-#ifdef __KERNEL__
-extern struct header_ops phonet_header_ops;
-#endif
 
 #endif

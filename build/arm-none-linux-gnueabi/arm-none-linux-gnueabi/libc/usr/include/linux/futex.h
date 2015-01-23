@@ -1,8 +1,13 @@
 #ifndef _LINUX_FUTEX_H
 #define _LINUX_FUTEX_H
 
-#include <linux/compiler.h>
+
 #include <linux/types.h>
+
+struct inode;
+struct mm_struct;
+struct task_struct;
+union ktime;
 
 /* Second argument to futex syscall */
 
@@ -18,8 +23,6 @@
 #define FUTEX_TRYLOCK_PI	8
 #define FUTEX_WAIT_BITSET	9
 #define FUTEX_WAKE_BITSET	10
-#define FUTEX_WAIT_REQUEUE_PI	11
-#define FUTEX_CMP_REQUEUE_PI	12
 
 #define FUTEX_PRIVATE_FLAG	128
 #define FUTEX_CLOCK_REALTIME	256
@@ -33,12 +36,8 @@
 #define FUTEX_LOCK_PI_PRIVATE	(FUTEX_LOCK_PI | FUTEX_PRIVATE_FLAG)
 #define FUTEX_UNLOCK_PI_PRIVATE	(FUTEX_UNLOCK_PI | FUTEX_PRIVATE_FLAG)
 #define FUTEX_TRYLOCK_PI_PRIVATE (FUTEX_TRYLOCK_PI | FUTEX_PRIVATE_FLAG)
-#define FUTEX_WAIT_BITSET_PRIVATE	(FUTEX_WAIT_BITSET | FUTEX_PRIVATE_FLAG)
-#define FUTEX_WAKE_BITSET_PRIVATE	(FUTEX_WAKE_BITSET | FUTEX_PRIVATE_FLAG)
-#define FUTEX_WAIT_REQUEUE_PI_PRIVATE	(FUTEX_WAIT_REQUEUE_PI | \
-					 FUTEX_PRIVATE_FLAG)
-#define FUTEX_CMP_REQUEUE_PI_PRIVATE	(FUTEX_CMP_REQUEUE_PI | \
-					 FUTEX_PRIVATE_FLAG)
+#define FUTEX_WAIT_BITSET_PRIVATE	(FUTEX_WAIT_BITS | FUTEX_PRIVATE_FLAG)
+#define FUTEX_WAKE_BITSET_PRIVATE	(FUTEX_WAKE_BITS | FUTEX_PRIVATE_FLAG)
 
 /*
  * Support for robust futexes: the kernel cleans up held futexes at
@@ -55,7 +54,7 @@
  * changed.
  */
 struct robust_list {
-	struct robust_list __user *next;
+	struct robust_list *next;
 };
 
 /*
@@ -90,7 +89,7 @@ struct robust_list_head {
 	 * _might_ have taken. We check the owner TID in any case,
 	 * so only truly owned locks will be handled.
 	 */
-	struct robust_list __user *list_op_pending;
+	struct robust_list *list_op_pending;
 };
 
 /*
@@ -123,69 +122,6 @@ struct robust_list_head {
  */
 #define FUTEX_BITSET_MATCH_ANY	0xffffffff
 
-#ifdef __KERNEL__
-struct inode;
-struct mm_struct;
-struct task_struct;
-union ktime;
-
-long do_futex(u32 __user *uaddr, int op, u32 val, union ktime *timeout,
-	      u32 __user *uaddr2, u32 val2, u32 val3);
-
-extern int
-handle_futex_death(u32 __user *uaddr, struct task_struct *curr, int pi);
-
-/*
- * Futexes are matched on equal values of this key.
- * The key type depends on whether it's a shared or private mapping.
- * Don't rearrange members without looking at hash_futex().
- *
- * offset is aligned to a multiple of sizeof(u32) (== 4) by definition.
- * We use the two low order bits of offset to tell what is the kind of key :
- *  00 : Private process futex (PTHREAD_PROCESS_PRIVATE)
- *       (no reference on an inode or mm)
- *  01 : Shared futex (PTHREAD_PROCESS_SHARED)
- *	mapped on a file (reference on the underlying inode)
- *  10 : Shared futex (PTHREAD_PROCESS_SHARED)
- *       (but private mapping on an mm, and reference taken on it)
-*/
-
-#define FUT_OFF_INODE    1 /* We set bit 0 if key has a reference on inode */
-#define FUT_OFF_MMSHARED 2 /* We set bit 1 if key has a reference on mm */
-
-union futex_key {
-	struct {
-		unsigned long pgoff;
-		struct inode *inode;
-		int offset;
-	} shared;
-	struct {
-		unsigned long address;
-		struct mm_struct *mm;
-		int offset;
-	} private;
-	struct {
-		unsigned long word;
-		void *ptr;
-		int offset;
-	} both;
-};
-
-#define FUTEX_KEY_INIT (union futex_key) { .both = { .ptr = NULL } }
-
-#ifdef CONFIG_FUTEX
-extern void exit_robust_list(struct task_struct *curr);
-extern void exit_pi_state_list(struct task_struct *curr);
-extern int futex_cmpxchg_enabled;
-#else
-static inline void exit_robust_list(struct task_struct *curr)
-{
-}
-static inline void exit_pi_state_list(struct task_struct *curr)
-{
-}
-#endif
-#endif /* __KERNEL__ */
 
 #define FUTEX_OP_SET		0	/* *(int *)UADDR2 = OPARG; */
 #define FUTEX_OP_ADD		1	/* *(int *)UADDR2 += OPARG; */

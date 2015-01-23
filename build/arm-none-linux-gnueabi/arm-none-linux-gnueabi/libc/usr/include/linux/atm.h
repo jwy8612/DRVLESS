@@ -16,7 +16,7 @@
  * documentation. Do not change them.
  */
 
-#include <linux/compiler.h>
+
 #include <linux/atmapi.h>
 #include <linux/atmsap.h>
 #include <linux/atmioc.h>
@@ -233,19 +233,9 @@ static __inline__ int atmpvc_addr_in_use(struct sockaddr_atmpvc addr)
 struct atmif_sioc {
 	int number;
 	int length;
-	void __user *arg;
+	void *arg;
 };
 
-#ifdef __KERNEL__
-#ifdef CONFIG_COMPAT
-#include <linux/compat.h>
-struct compat_atmif_sioc {
-	int number;
-	int length;
-	compat_uptr_t arg;
-};
-#endif
-#endif
 
 typedef unsigned short atm_backend_t;
 #endif

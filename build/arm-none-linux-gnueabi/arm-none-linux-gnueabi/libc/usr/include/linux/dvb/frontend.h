@@ -62,7 +62,6 @@ typedef enum fe_caps {
 	FE_CAN_8VSB			= 0x200000,
 	FE_CAN_16VSB			= 0x400000,
 	FE_HAS_EXTENDED_CAPS		= 0x800000,   /* We need more bitspace for newer APIs, indicate this. */
-	FE_CAN_TURBO_FEC		= 0x8000000,  /* frontend supports "turbo fec modulation" */
 	FE_CAN_2G_MODULATION		= 0x10000000, /* frontend supports "2nd generation modulation" (DVB-S2) */
 	FE_NEEDS_BENDING		= 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
 	FE_CAN_RECOVER			= 0x40000000, /* frontend can recover from a cable unplug automatically */
@@ -72,7 +71,7 @@ typedef enum fe_caps {
 
 struct dvb_frontend_info {
 	char       name[128];
-	fe_type_t  type;			/* DEPRECATED. Use DTV_ENUM_DELSYS instead */
+	fe_type_t  type;
 	__u32      frequency_min;
 	__u32      frequency_max;
 	__u32      frequency_stepsize;
@@ -174,34 +173,23 @@ typedef enum fe_modulation {
 typedef enum fe_transmit_mode {
 	TRANSMISSION_MODE_2K,
 	TRANSMISSION_MODE_8K,
-	TRANSMISSION_MODE_AUTO,
-	TRANSMISSION_MODE_4K,
-	TRANSMISSION_MODE_1K,
-	TRANSMISSION_MODE_16K,
-	TRANSMISSION_MODE_32K,
+	TRANSMISSION_MODE_AUTO
 } fe_transmit_mode_t;
 
-#if defined(__DVB_CORE__) || !defined (__KERNEL__)
 typedef enum fe_bandwidth {
 	BANDWIDTH_8_MHZ,
 	BANDWIDTH_7_MHZ,
 	BANDWIDTH_6_MHZ,
-	BANDWIDTH_AUTO,
-	BANDWIDTH_5_MHZ,
-	BANDWIDTH_10_MHZ,
-	BANDWIDTH_1_712_MHZ,
+	BANDWIDTH_AUTO
 } fe_bandwidth_t;
-#endif
+
 
 typedef enum fe_guard_interval {
 	GUARD_INTERVAL_1_32,
 	GUARD_INTERVAL_1_16,
 	GUARD_INTERVAL_1_8,
 	GUARD_INTERVAL_1_4,
-	GUARD_INTERVAL_AUTO,
-	GUARD_INTERVAL_1_128,
-	GUARD_INTERVAL_19_128,
-	GUARD_INTERVAL_19_256,
+	GUARD_INTERVAL_AUTO
 } fe_guard_interval_t;
 
 
@@ -214,7 +202,6 @@ typedef enum fe_hierarchy {
 } fe_hierarchy_t;
 
 
-#if defined(__DVB_CORE__) || !defined (__KERNEL__)
 struct dvb_qpsk_parameters {
 	__u32		symbol_rate;  /* symbol rate in Symbols per second */
 	fe_code_rate_t	fec_inner;    /* forward error correction (see above) */
@@ -253,11 +240,11 @@ struct dvb_frontend_parameters {
 	} u;
 };
 
+
 struct dvb_frontend_event {
 	fe_status_t status;
 	struct dvb_frontend_parameters parameters;
 };
-#endif
 
 /* S2API Commands */
 #define DTV_UNDEFINED		0
@@ -281,46 +268,15 @@ struct dvb_frontend_event {
 #define DTV_FE_CAPABILITY	16
 #define DTV_DELIVERY_SYSTEM	17
 
-/* ISDB-T and ISDB-Tsb */
-#define DTV_ISDBT_PARTIAL_RECEPTION	18
-#define DTV_ISDBT_SOUND_BROADCASTING	19
+#define DTV_API_VERSION				35
+#define DTV_API_VERSION				35
+#define DTV_CODE_RATE_HP			36
+#define DTV_CODE_RATE_LP			37
+#define DTV_GUARD_INTERVAL			38
+#define DTV_TRANSMISSION_MODE			39
+#define DTV_HIERARCHY				40
 
-#define DTV_ISDBT_SB_SUBCHANNEL_ID	20
-#define DTV_ISDBT_SB_SEGMENT_IDX	21
-#define DTV_ISDBT_SB_SEGMENT_COUNT	22
-
-#define DTV_ISDBT_LAYERA_FEC			23
-#define DTV_ISDBT_LAYERA_MODULATION		24
-#define DTV_ISDBT_LAYERA_SEGMENT_COUNT		25
-#define DTV_ISDBT_LAYERA_TIME_INTERLEAVING	26
-
-#define DTV_ISDBT_LAYERB_FEC			27
-#define DTV_ISDBT_LAYERB_MODULATION		28
-#define DTV_ISDBT_LAYERB_SEGMENT_COUNT		29
-#define DTV_ISDBT_LAYERB_TIME_INTERLEAVING	30
-
-#define DTV_ISDBT_LAYERC_FEC			31
-#define DTV_ISDBT_LAYERC_MODULATION		32
-#define DTV_ISDBT_LAYERC_SEGMENT_COUNT		33
-#define DTV_ISDBT_LAYERC_TIME_INTERLEAVING	34
-
-#define DTV_API_VERSION		35
-
-#define DTV_CODE_RATE_HP	36
-#define DTV_CODE_RATE_LP	37
-#define DTV_GUARD_INTERVAL	38
-#define DTV_TRANSMISSION_MODE	39
-#define DTV_HIERARCHY		40
-
-#define DTV_ISDBT_LAYER_ENABLED	41
-
-#define DTV_ISDBS_TS_ID		42
-
-#define DTV_DVBT2_PLP_ID	43
-
-#define DTV_ENUM_DELSYS		44
-
-#define DTV_MAX_COMMAND				DTV_ENUM_DELSYS
+#define DTV_MAX_COMMAND				DTV_HIERARCHY
 
 typedef enum fe_pilot {
 	PILOT_ON,
@@ -337,7 +293,7 @@ typedef enum fe_rolloff {
 
 typedef enum fe_delivery_system {
 	SYS_UNDEFINED,
-	SYS_DVBC_ANNEX_A,
+	SYS_DVBC_ANNEX_AC,
 	SYS_DVBC_ANNEX_B,
 	SYS_DVBT,
 	SYS_DSS,
@@ -352,14 +308,7 @@ typedef enum fe_delivery_system {
 	SYS_DMBTH,
 	SYS_CMMB,
 	SYS_DAB,
-	SYS_DVBT2,
-	SYS_TURBO,
-	SYS_DVBC_ANNEX_C,
 } fe_delivery_system_t;
-
-
-#define SYS_DVBC_ANNEX_AC	SYS_DVBC_ANNEX_A
-
 
 struct dtv_cmds_h {
 	char	*name;		/* A display name for debugging purposes */

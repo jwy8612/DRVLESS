@@ -51,7 +51,6 @@ struct inotify_event {
 /* special flags */
 #define IN_ONLYDIR		0x01000000	/* only watch the path if it is a directory */
 #define IN_DONT_FOLLOW		0x02000000	/* don't follow a sym link */
-#define IN_EXCL_UNLINK		0x04000000	/* exclude events on unlinked objects */
 #define IN_MASK_ADD		0x20000000	/* add to the mask of an already existing watch */
 #define IN_ISDIR		0x40000000	/* event occurred against dir */
 #define IN_ONESHOT		0x80000000	/* only send event once */
@@ -70,18 +69,5 @@ struct inotify_event {
 #define IN_CLOEXEC O_CLOEXEC
 #define IN_NONBLOCK O_NONBLOCK
 
-#ifdef __KERNEL__
-#include <linux/sysctl.h>
-extern struct ctl_table inotify_table[]; /* for sysctl */
-
-#define ALL_INOTIFY_BITS (IN_ACCESS | IN_MODIFY | IN_ATTRIB | IN_CLOSE_WRITE | \
-			  IN_CLOSE_NOWRITE | IN_OPEN | IN_MOVED_FROM | \
-			  IN_MOVED_TO | IN_CREATE | IN_DELETE | \
-			  IN_DELETE_SELF | IN_MOVE_SELF | IN_UNMOUNT | \
-			  IN_Q_OVERFLOW | IN_IGNORED | IN_ONLYDIR | \
-			  IN_DONT_FOLLOW | IN_EXCL_UNLINK | IN_MASK_ADD | \
-			  IN_ISDIR | IN_ONESHOT)
-
-#endif
 
 #endif	/* _LINUX_INOTIFY_H */

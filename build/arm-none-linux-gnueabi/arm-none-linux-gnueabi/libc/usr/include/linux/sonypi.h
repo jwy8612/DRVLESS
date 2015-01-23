@@ -40,7 +40,6 @@
 
 /* events the user application reading /dev/sonypi can use */
 
-#define SONYPI_EVENT_IGNORE			 0
 #define SONYPI_EVENT_JOGDIAL_DOWN		 1
 #define SONYPI_EVENT_JOGDIAL_UP			 2
 #define SONYPI_EVENT_JOGDIAL_DOWN_PRESSED	 3
@@ -112,8 +111,6 @@
 #define SONYPI_EVENT_VOLUME_INC_PRESSED		69
 #define SONYPI_EVENT_VOLUME_DEC_PRESSED		70
 #define SONYPI_EVENT_BRIGHTNESS_PRESSED		71
-#define SONYPI_EVENT_MEDIA_PRESSED		72
-#define SONYPI_EVENT_VENDOR_PRESSED		73
 
 /* get/set brightness */
 #define SONYPI_IOCGBRT		_IOR('v', 0, __u8)
@@ -142,30 +139,5 @@
 /* get temperature (C) */
 #define SONYPI_IOCGTEMP		_IOR('v', 12, __u8)
 
-#ifdef __KERNEL__
-
-/* used only for communication between v4l and sonypi */
-
-#define SONYPI_COMMAND_GETCAMERA		 1	/* obsolete */
-#define SONYPI_COMMAND_SETCAMERA		 2
-#define SONYPI_COMMAND_GETCAMERABRIGHTNESS	 3	/* obsolete */
-#define SONYPI_COMMAND_SETCAMERABRIGHTNESS	 4
-#define SONYPI_COMMAND_GETCAMERACONTRAST	 5	/* obsolete */
-#define SONYPI_COMMAND_SETCAMERACONTRAST	 6
-#define SONYPI_COMMAND_GETCAMERAHUE		 7	/* obsolete */
-#define SONYPI_COMMAND_SETCAMERAHUE		 8
-#define SONYPI_COMMAND_GETCAMERACOLOR		 9	/* obsolete */
-#define SONYPI_COMMAND_SETCAMERACOLOR		10
-#define SONYPI_COMMAND_GETCAMERASHARPNESS	11	/* obsolete */
-#define SONYPI_COMMAND_SETCAMERASHARPNESS	12
-#define SONYPI_COMMAND_GETCAMERAPICTURE		13	/* obsolete */
-#define SONYPI_COMMAND_SETCAMERAPICTURE		14
-#define SONYPI_COMMAND_GETCAMERAAGC		15	/* obsolete */
-#define SONYPI_COMMAND_SETCAMERAAGC		16
-#define SONYPI_COMMAND_GETCAMERADIRECTION	17	/* obsolete */
-#define SONYPI_COMMAND_GETCAMERAROMVERSION	18	/* obsolete */
-#define SONYPI_COMMAND_GETCAMERAREVISION	19	/* obsolete */
-
-#endif				/* __KERNEL__ */
 
 #endif				/* _SONYPI_H_ */

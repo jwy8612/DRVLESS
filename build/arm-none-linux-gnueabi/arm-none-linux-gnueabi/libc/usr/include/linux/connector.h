@@ -1,7 +1,7 @@
 /*
  * 	connector.h
  * 
- * 2004-2005 Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
+ * 2004-2005 Copyright (c) Evgeniy Polyakov <johnpol@2ka.mipt.ru>
  * All rights reserved.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,9 @@
 
 #include <linux/types.h>
 
+#define CN_IDX_CONNECTOR		0xffffffff
+#define CN_VAL_CONNECTOR		0xffffffff
+
 /*
  * Process Events connector unique ids -- used for message routing
  */
@@ -38,14 +41,8 @@
 #define CN_IDX_BB			0x5	/* BlackBoard, from the TSP GPL sampling framework */
 #define CN_DST_IDX			0x6
 #define CN_DST_VAL			0x1
-#define CN_IDX_DM			0x7	/* Device Mapper */
-#define CN_VAL_DM_USERSPACE_LOG		0x1
-#define CN_IDX_DRBD			0x8
-#define CN_VAL_DRBD			0x1
-#define CN_KVP_IDX			0x9	/* HyperV KVP */
-#define CN_KVP_VAL			0x1	/* queries from the kernel */
 
-#define CN_NETLINK_USERS		10	/* Highest index + 1 */
+#define CN_NETLINK_USERS		7
 
 /*
  * Maximum connector's message size.
@@ -74,68 +71,28 @@ struct cn_msg {
 	__u8 data[0];
 };
 
-#ifdef __KERNEL__
-
-#include <linux/atomic.h>
-
-#include <linux/list.h>
-#include <linux/workqueue.h>
-
-#include <net/sock.h>
-
-#define CN_CBQ_NAMELEN		32
-
-struct cn_queue_dev {
-	atomic_t refcnt;
-	unsigned char name[CN_CBQ_NAMELEN];
-
-	struct list_head queue_list;
-	spinlock_t queue_lock;
-
-	struct sock *nls;
+/*
+ * Notify structure - requests notification about
+ * registering/unregistering idx/val in range [first, first+range].
+ */
+struct cn_notify_req {
+	__u32 first;
+	__u32 range;
 };
 
-struct cn_callback_id {
-	unsigned char name[CN_CBQ_NAMELEN];
-	struct cb_id id;
+/*
+ * Main notification control message
+ * *_notify_num 	- number of appropriate cn_notify_req structures after 
+ *				this struct.
+ * group 		- notification receiver's idx.
+ * len 			- total length of the attached data.
+ */
+struct cn_ctl_msg {
+	__u32 idx_notify_num;
+	__u32 val_notify_num;
+	__u32 group;
+	__u32 len;
+	__u8 data[0];
 };
 
-struct cn_callback_entry {
-	struct list_head callback_entry;
-	atomic_t refcnt;
-	struct cn_queue_dev *pdev;
-
-	struct cn_callback_id id;
-	void (*callback) (struct cn_msg *, struct netlink_skb_parms *);
-
-	u32 seq, group;
-};
-
-struct cn_dev {
-	struct cb_id id;
-
-	u32 seq, groups;
-	struct sock *nls;
-	void (*input) (struct sk_buff *skb);
-
-	struct cn_queue_dev *cbdev;
-};
-
-int cn_add_callback(struct cb_id *id, const char *name,
-		    void (*callback)(struct cn_msg *, struct netlink_skb_parms *));
-void cn_del_callback(struct cb_id *);
-int cn_netlink_send(struct cn_msg *, u32, gfp_t);
-
-int cn_queue_add_callback(struct cn_queue_dev *dev, const char *name,
-			  struct cb_id *id,
-			  void (*callback)(struct cn_msg *, struct netlink_skb_parms *));
-void cn_queue_del_callback(struct cn_queue_dev *dev, struct cb_id *id);
-void cn_queue_release_callback(struct cn_callback_entry *);
-
-struct cn_queue_dev *cn_queue_alloc_dev(const char *name, struct sock *);
-void cn_queue_free_dev(struct cn_queue_dev *dev);
-
-int cn_cb_equal(struct cb_id *, struct cb_id *);
-
-#endif				/* __KERNEL__ */
 #endif				/* __CONNECTOR_H */

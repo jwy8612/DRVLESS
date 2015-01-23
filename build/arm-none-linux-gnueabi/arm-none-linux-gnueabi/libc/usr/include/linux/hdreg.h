@@ -12,12 +12,10 @@
 #define HDIO_DRIVE_TASK_HDR_SIZE	(8 * sizeof(__u8))
 
 #define IDE_DRIVE_TASK_NO_DATA		0
-#ifndef __KERNEL__
 #define IDE_DRIVE_TASK_INVALID		-1
 #define IDE_DRIVE_TASK_SET_XFER		1
 #define IDE_DRIVE_TASK_IN		2
 #define IDE_DRIVE_TASK_OUT		3
-#endif
 #define IDE_DRIVE_TASK_RAW_WRITE	4
 
 /*
@@ -25,13 +23,11 @@
  */
 #define IDE_TASKFILE_STD_IN_FLAGS	0xFE
 #define IDE_HOB_STD_IN_FLAGS		0x3C
-#ifndef __KERNEL__
 #define IDE_TASKFILE_STD_OUT_FLAGS	0xFE
 #define IDE_HOB_STD_OUT_FLAGS		0x3C
 
 typedef unsigned char task_ioreg_t;
 typedef unsigned long sata_ioreg_t;
-#endif
 
 typedef union ide_reg_valid_s {
 	unsigned all				: 16;
@@ -80,7 +76,6 @@ struct hd_drive_cmd_hdr {
 	__u8 sector_count;
 };
 
-#ifndef __KERNEL__
 typedef struct hd_drive_task_hdr {
 	__u8 data;
 	__u8 feature;
@@ -102,7 +97,6 @@ typedef struct hd_drive_hob_hdr {
 	__u8 device_head;
 	__u8 control;
 } hob_struct_t;
-#endif
 
 #define TASKFILE_NO_DATA		0x0000
 
@@ -118,7 +112,6 @@ typedef struct hd_drive_hob_hdr {
 #define TASKFILE_IN_DMAQ		0x0080
 #define TASKFILE_OUT_DMAQ		0x0100
 
-#ifndef __KERNEL__
 #define TASKFILE_P_IN			0x0200
 #define TASKFILE_P_OUT			0x0400
 #define TASKFILE_P_IN_DMA		0x0800
@@ -127,9 +120,7 @@ typedef struct hd_drive_hob_hdr {
 #define TASKFILE_P_OUT_DMAQ		0x4000
 #define TASKFILE_48			0x8000
 #define TASKFILE_INVALID		0x7fff
-#endif
 
-#ifndef __KERNEL__
 /* ATA/ATAPI Commands pre T13 Spec */
 #define WIN_NOP				0x00
 /*
@@ -318,7 +309,6 @@ typedef struct hd_drive_hob_hdr {
 #define SECURITY_ERASE_UNIT		0xBD
 #define SECURITY_FREEZE_LOCK		0xBE
 #define SECURITY_DISABLE_PASSWORD	0xBF
-#endif /* __KERNEL__ */
 
 struct hd_geometry {
       unsigned char heads;
@@ -362,10 +352,8 @@ struct hd_geometry {
 #define HDIO_SET_NOWERR		0x0325	/* change ignore-write-error flag */
 #define HDIO_SET_DMA		0x0326	/* change use-dma flag */
 #define HDIO_SET_PIO_MODE	0x0327	/* reconfig interface to new speed */
-#ifndef __KERNEL__
 #define HDIO_SCAN_HWIF		0x0328	/* register and (re)scan interface */
 #define HDIO_UNREGISTER_HWIF	0x032a  /* unregister interface */
-#endif
 #define HDIO_SET_NICE		0x0329	/* set nice flags */
 #define HDIO_SET_WCACHE		0x032b	/* change write cache enable-disable */
 #define HDIO_SET_ACOUSTIC	0x032c	/* change acoustic behavior */
@@ -388,7 +376,6 @@ enum {
 
 #define __NEW_HD_DRIVE_ID
 
-#ifndef __KERNEL__
 /*
  * Structure returned by HDIO_GET_IDENTITY, as per ANSI NCITS ATA6 rev.1b spec.
  *
@@ -640,7 +627,6 @@ struct hd_driveid {
 					 *  7:0 Signature
 					 */
 };
-#endif /* __KERNEL__ */
 
 /*
  * IDE "nice" flags. These are used on a per drive basis to determine
@@ -650,9 +636,7 @@ struct hd_driveid {
 #define IDE_NICE_DSC_OVERLAP	(0)	/* per the DSC overlap protocol */
 #define IDE_NICE_ATAPI_OVERLAP	(1)	/* not supported yet */
 #define IDE_NICE_1		(3)	/* when probably won't affect us much */
-#ifndef __KERNEL__
 #define IDE_NICE_0		(2)	/* when sure that it won't affect us */
 #define IDE_NICE_2		(4)	/* when we know it's on our expense */
-#endif
 
 #endif	/* _LINUX_HDREG_H */

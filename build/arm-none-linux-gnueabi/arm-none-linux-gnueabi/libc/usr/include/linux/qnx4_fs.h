@@ -85,4 +85,5 @@ struct qnx4_super_block {
 	struct qnx4_inode_entry AltBoot;
 };
 
+
 #endif

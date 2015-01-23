@@ -66,9 +66,6 @@
 
 /* 63 partitions with the alternate major number (mdp) */
 #define MdpMinorShift 6
-#ifdef __KERNEL__
-extern int mdp_major;
-#endif
 
 typedef struct mdu_version_s {
 	int major;

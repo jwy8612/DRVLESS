@@ -2,7 +2,7 @@
 #define _LINUX_FD_H
 
 #include <linux/ioctl.h>
-#include <linux/compiler.h>
+
 
 /* New file layout: Now the ioctl definitions immediately follow the
  * definitions of the structures that they use */
@@ -346,7 +346,7 @@ struct floppy_raw_cmd {
 #define FD_RAW_FAILURE 0x10000 /* command sent to fdc, fdc returned error */
 #define FD_RAW_HARDFAILURE 0x20000 /* fdc had to be reset, or timed out */
 
-	void __user *data;
+	void *data;
 	char *kernel_data; /* location of data buffer in the kernel */
 	struct floppy_raw_cmd *next; /* used for chaining of raw cmd's 
 				      * within the kernel */
@@ -376,27 +376,5 @@ struct floppy_raw_cmd {
 
 #define FDEJECT _IO(2, 0x5a)
 /* eject the disk */
-
-
-#ifdef __KERNEL__
-#ifdef CONFIG_COMPAT
-#include <linux/compat.h>
-
-struct compat_floppy_struct {
-	compat_uint_t	size;
-	compat_uint_t	sect;
-	compat_uint_t	head;
-	compat_uint_t	track;
-	compat_uint_t	stretch;
-	unsigned char	gap;
-	unsigned char	rate;
-	unsigned char	spec1;
-	unsigned char	fmt_gap;
-	const compat_caddr_t name;
-};
-
-#define FDGETPRM32 _IOR(2, 0x04, struct compat_floppy_struct)
-#endif
-#endif
 
 #endif

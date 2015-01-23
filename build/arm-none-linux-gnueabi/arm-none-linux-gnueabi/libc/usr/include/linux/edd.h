@@ -186,9 +186,6 @@ struct edd {
 	unsigned char edd_info_nr;
 };
 
-#ifdef __KERNEL__
-extern struct edd edd;
-#endif /* __KERNEL__ */
 #endif				/*!__ASSEMBLY__ */
 
 #endif				/* _LINUX_EDD_H */

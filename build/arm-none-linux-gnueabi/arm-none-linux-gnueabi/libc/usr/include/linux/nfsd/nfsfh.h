@@ -14,14 +14,9 @@
 #ifndef _LINUX_NFSD_FH_H
 #define _LINUX_NFSD_FH_H
 
-#include <linux/types.h>
-#include <linux/nfs.h>
-#include <linux/nfs2.h>
-#include <linux/nfs3.h>
-#include <linux/nfs4.h>
-#ifdef __KERNEL__
-# include <linux/sunrpc/svc.h>
-#endif
+# include <linux/types.h>
+#include <linux/nfsd/const.h>
+#include <linux/nfsd/debug.h>
 
 /*
  * This is the old "dentry style" Linux NFSv2 file handle.
@@ -43,16 +38,16 @@ struct nfs_fhbase_old {
  * This is the new flexible, extensible style NFSv2/v3 file handle.
  * by Neil Brown <neilb@cse.unsw.edu.au> - March 2000
  *
- * The file handle starts with a sequence of four-byte words.
- * The first word contains a version number (1) and three descriptor bytes
+ * The file handle is seens as a list of 4byte words.
+ * The first word contains a version number (1) and four descriptor bytes
  * that tell how the remaining 3 variable length fields should be handled.
  * These three bytes are auth_type, fsid_type and fileid_type.
  *
- * All four-byte values are in host-byte-order.
+ * All 4byte values are in host-byte-order.
  *
  * The auth_type field specifies how the filehandle can be authenticated
  * This might allow a file to be confirmed to be in a writable part of a
- * filetree without checking the path from it up to the root.
+ * filetree without checking the path from it upto the root.
  * Current values:
  *     0  - No authentication.  fb_auth is 0 bytes long
  * Possible future values:
@@ -120,52 +115,6 @@ struct knfsd_fh {
 #define	fh_auth			fh_base.fh_new.fb_auth
 #define	fh_fsid			fh_base.fh_new.fb_auth
 
-#ifdef __KERNEL__
-
-static inline __u32 ino_t_to_u32(ino_t ino)
-{
-	return (__u32) ino;
-}
-
-static inline ino_t u32_to_ino_t(__u32 uino)
-{
-	return (ino_t) uino;
-}
-
-/*
- * This is the internal representation of an NFS handle used in knfsd.
- * pre_mtime/post_version will be used to support wcc_attr's in NFSv3.
- */
-typedef struct svc_fh {
-	struct knfsd_fh		fh_handle;	/* FH data */
-	struct dentry *		fh_dentry;	/* validated dentry */
-	struct svc_export *	fh_export;	/* export pointer */
-	int			fh_maxsize;	/* max size for fh_handle */
-
-	unsigned char		fh_locked;	/* inode locked by us */
-
-#ifdef CONFIG_NFSD_V3
-	unsigned char		fh_post_saved;	/* post-op attrs saved */
-	unsigned char		fh_pre_saved;	/* pre-op attrs saved */
-
-	/* Pre-op attributes saved during fh_lock */
-	__u64			fh_pre_size;	/* size before operation */
-	struct timespec		fh_pre_mtime;	/* mtime before oper */
-	struct timespec		fh_pre_ctime;	/* ctime before oper */
-	/*
-	 * pre-op nfsv4 change attr: note must check IS_I_VERSION(inode)
-	 *  to find out if it is valid.
-	 */
-	u64			fh_pre_change;
-
-	/* Post-op attributes saved in fh_unlock */
-	struct kstat		fh_post_attr;	/* full attrs after operation */
-	u64			fh_post_change; /* nfsv4 change; see above */
-#endif /* CONFIG_NFSD_V3 */
-
-} svc_fh;
-
-#endif /* __KERNEL__ */
 
 
 #endif /* _LINUX_NFSD_FH_H */

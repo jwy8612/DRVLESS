@@ -13,68 +13,14 @@
 #define LO_NAME_SIZE	64
 #define LO_KEY_SIZE	32
 
-#ifdef __KERNEL__
-#include <linux/bio.h>
-#include <linux/blkdev.h>
-#include <linux/spinlock.h>
-#include <linux/mutex.h>
-
-/* Possible states of device */
-enum {
-	Lo_unbound,
-	Lo_bound,
-	Lo_rundown,
-};
-
-struct loop_func_table;
-
-struct loop_device {
-	int		lo_number;
-	int		lo_refcnt;
-	loff_t		lo_offset;
-	loff_t		lo_sizelimit;
-	int		lo_flags;
-	int		(*transfer)(struct loop_device *, int cmd,
-				    struct page *raw_page, unsigned raw_off,
-				    struct page *loop_page, unsigned loop_off,
-				    int size, sector_t real_block);
-	char		lo_file_name[LO_NAME_SIZE];
-	char		lo_crypt_name[LO_NAME_SIZE];
-	char		lo_encrypt_key[LO_KEY_SIZE];
-	int		lo_encrypt_key_size;
-	struct loop_func_table *lo_encryption;
-	__u32           lo_init[2];
-	uid_t		lo_key_owner;	/* Who set the key */
-	int		(*ioctl)(struct loop_device *, int cmd, 
-				 unsigned long arg); 
-
-	struct file *	lo_backing_file;
-	struct block_device *lo_device;
-	unsigned	lo_blocksize;
-	void		*key_data; 
-
-	gfp_t		old_gfp_mask;
-
-	spinlock_t		lo_lock;
-	struct bio_list		lo_bio_list;
-	int			lo_state;
-	struct mutex		lo_ctl_mutex;
-	struct task_struct	*lo_thread;
-	wait_queue_head_t	lo_event;
-
-	struct request_queue	*lo_queue;
-	struct gendisk		*lo_disk;
-};
-
-#endif /* __KERNEL__ */
 
 /*
  * Loop flags
  */
 enum {
 	LO_FLAGS_READ_ONLY	= 1,
+	LO_FLAGS_USE_AOPS	= 2,
 	LO_FLAGS_AUTOCLEAR	= 4,
-	LO_FLAGS_PARTSCAN	= 8,
 };
 
 #include <asm/posix_types.h>	/* for __kernel_old_dev_t */
@@ -128,25 +74,6 @@ struct loop_info64 {
 #define LO_CRYPT_CRYPTOAPI	18
 #define MAX_LO_CRYPT		20
 
-#ifdef __KERNEL__
-/* Support for loadable transfer modules */
-struct loop_func_table {
-	int number;	/* filter type */ 
-	int (*transfer)(struct loop_device *lo, int cmd,
-			struct page *raw_page, unsigned raw_off,
-			struct page *loop_page, unsigned loop_off,
-			int size, sector_t real_block);
-	int (*init)(struct loop_device *, const struct loop_info64 *); 
-	/* release is called from loop_unregister_transfer or clr_fd */
-	int (*release)(struct loop_device *); 
-	int (*ioctl)(struct loop_device *, int cmd, unsigned long arg);
-	struct module *owner;
-}; 
-
-int loop_register_transfer(struct loop_func_table *funcs);
-int loop_unregister_transfer(int number); 
-
-#endif
 /*
  * IOCTL commands --- we will commandeer 0x4C ('L')
  */
@@ -160,8 +87,4 @@ int loop_unregister_transfer(int number);
 #define LOOP_CHANGE_FD		0x4C06
 #define LOOP_SET_CAPACITY	0x4C07
 
-/* /dev/loop-control interface */
-#define LOOP_CTL_ADD		0x4C80
-#define LOOP_CTL_REMOVE		0x4C81
-#define LOOP_CTL_GET_FREE	0x4C82
 #endif

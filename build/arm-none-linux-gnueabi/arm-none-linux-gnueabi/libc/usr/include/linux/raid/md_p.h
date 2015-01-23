@@ -191,7 +191,7 @@ typedef struct mdp_superblock_s {
 
 } mdp_super_t;
 
-static inline __u64 md_event(mdp_super_t *sb) {
+static __inline__ __u64 md_event(mdp_super_t *sb) {
 	__u64 ev = sb->events_hi;
 	return (ev<<32)| sb->events_lo;
 }
@@ -232,7 +232,7 @@ struct mdp_superblock_1 {
 	__le64	reshape_position;	/* next address in array-space for reshape */
 	__le32	delta_disks;	/* change in number of raid_disks		*/
 	__le32	new_layout;	/* new layout					*/
-	__le32	new_chunk;	/* new chunk size (512byte sectors)		*/
+	__le32	new_chunk;	/* new chunk size (bytes)			*/
 	__u8	pad1[128-124];	/* set to 0 when written */
 
 	/* constant this-device information - 64 bytes */
@@ -245,19 +245,13 @@ struct mdp_superblock_1 {
 	__u8	device_uuid[16]; /* user-space setable, ignored by kernel */
 	__u8	devflags;	/* per-device flags.  Only one defined...*/
 #define	WriteMostly1	1	/* mask for writemostly flag in above */
-	/* Bad block log.  If there are any bad blocks the feature flag is set.
-	 * If offset and size are non-zero, that space is reserved and available
-	 */
-	__u8	bblog_shift;	/* shift from sectors to block size */
-	__le16	bblog_size;	/* number of sectors reserved for list */
-	__le32	bblog_offset;	/* sector offset from superblock to bblog,
-				 * signed - not unsigned */
+	__u8	pad2[64-57];	/* set to 0 when writing */
 
 	/* array state information - 64 bytes */
-	__le64	utime;		/* 40 bits second, 24 bits microseconds */
+	__le64	utime;		/* 40 bits second, 24 btes microseconds */
 	__le64	events;		/* incremented when superblock updated */
 	__le64	resync_offset;	/* data before this offset (from data_offset) known to be in sync */
-	__le32	sb_csum;	/* checksum up to devs[max_dev] */
+	__le32	sb_csum;	/* checksum upto devs[max_dev] */
 	__le32	max_dev;	/* size of devs[] array to consider */
 	__u8	pad3[64-32];	/* set to 0 when writing */
 
@@ -276,15 +270,8 @@ struct mdp_superblock_1 {
 					   * must be honoured
 					   */
 #define	MD_FEATURE_RESHAPE_ACTIVE	4
-#define	MD_FEATURE_BAD_BLOCKS		8 /* badblock list is not empty */
-#define	MD_FEATURE_REPLACEMENT		16 /* This device is replacing an
-					    * active device with same 'role'.
-					    * 'recovery_offset' is also set.
-					    */
-#define	MD_FEATURE_ALL			(MD_FEATURE_BITMAP_OFFSET	\
-					|MD_FEATURE_RECOVERY_OFFSET	\
-					|MD_FEATURE_RESHAPE_ACTIVE	\
-					|MD_FEATURE_BAD_BLOCKS		\
-					|MD_FEATURE_REPLACEMENT)
+
+#define	MD_FEATURE_ALL			(1|2|4)
 
 #endif 
+

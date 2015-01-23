@@ -37,40 +37,6 @@ enum {
 #define nbd_cmd(req) ((req)->cmd[0])
 
 /* userspace doesn't need the nbd_device structure */
-#ifdef __KERNEL__
-
-#include <linux/wait.h>
-#include <linux/mutex.h>
-
-/* values for flags field */
-#define NBD_READ_ONLY 0x0001
-#define NBD_WRITE_NOCHK 0x0002
-
-struct request;
-
-struct nbd_device {
-	int flags;
-	int harderror;		/* Code of hard error			*/
-	struct socket * sock;
-	struct file * file; 	/* If == NULL, device is not ready, yet	*/
-	int magic;
-
-	spinlock_t queue_lock;
-	struct list_head queue_head;	/* Requests waiting result */
-	struct request *active_req;
-	wait_queue_head_t active_wq;
-	struct list_head waiting_queue;	/* Requests to be sent */
-	wait_queue_head_t waiting_wq;
-
-	struct mutex tx_lock;
-	struct gendisk *disk;
-	int blksize;
-	u64 bytesize;
-	pid_t pid; /* pid of nbd-client, if attached */
-	int xmit_timeout;
-};
-
-#endif
 
 /* These are sent over the network in the request/reply magic fields */
 
@@ -88,7 +54,7 @@ struct nbd_request {
 	char handle[8];
 	__be64 from;
 	__be32 len;
-} __attribute__((packed));
+} __attribute__ ((packed));
 
 /*
  * This is the reply packet that nbd-server sends back to the client after

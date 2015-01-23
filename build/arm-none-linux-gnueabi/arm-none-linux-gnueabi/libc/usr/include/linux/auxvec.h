@@ -31,9 +31,5 @@
 
 #define AT_EXECFN  31	/* filename of program */
 
-#ifdef __KERNEL__
-#define AT_VECTOR_SIZE_BASE 19 /* NEW_AUX_ENT entries in auxiliary table */
-  /* number of "#define AT_.*" above, minus {AT_NULL, AT_IGNORE, AT_NOTELF} */
-#endif
 
 #endif /* _LINUX_AUXVEC_H */

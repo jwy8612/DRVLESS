@@ -23,7 +23,7 @@
 struct ncp_ioctl_request {
 	unsigned int function;
 	unsigned int size;
-	char __user *data;
+	char *data;
 };
 
 struct ncp_fs_info {
@@ -87,13 +87,13 @@ struct ncp_objectname_ioctl
 #define NCP_AUTH_NDS	0x32
 	int		auth_type;
 	size_t		object_name_len;
-	void __user *	object_name;	/* a userspace data, in most cases user name */
+	void *	object_name;	/* a userspace data, in most cases user name */
 };
 
 struct ncp_privatedata_ioctl
 {
 	size_t		len;
-	void __user *	data;		/* ~1000 for NDS */
+	void *	data;		/* ~1000 for NDS */
 };
 
 /* NLS charsets by ioctl */
@@ -142,5 +142,6 @@ struct ncp_nls_ioctl
 
 #define NCP_MAXPATHLEN 255
 #define NCP_MAXNAMELEN 14
+
 
 #endif				/* _LINUX_NCP_FS_H */
