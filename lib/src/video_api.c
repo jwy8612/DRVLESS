@@ -266,4 +266,32 @@ int Com_SetConfig(void * Inst, PCOM_INFO comInfo)
 	return ret;
 }
 	
+int Com_sendData(void *Inst, void *buff, int datanum)
+{
+	int ret = 0;
+	PCOM_INST comInst = (PCOM_INST)Inst;
+	
+	function_in();
+	ret = write(comInst->fd, buff,datanum);
+	if(ret < 0)
+	{
+		video_err("write data to com err!!!\n");
+	}
 
+	function_out();
+	return ret;
+}
+
+int Com_Release(void *Inst)
+{
+	int ret = 0;
+	PCOM_INST comInst = (PCOM_INST)Inst;
+
+	function_in();
+	close(comInst->fd);// πÿ±’…Ë±∏     
+	free(comInst);
+
+	function_out();
+	return ret;
+
+}
