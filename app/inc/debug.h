@@ -5,7 +5,7 @@
 #define ERR 1
 
 #if(DBG)
-#define run_dbg(fmt, args...)		printf("[VIDEO:%s] " fmt, __FUNCTION__, ## args)
+#define run_dbg(fmt, args...)		printf("[RUN:%s] " fmt, __FUNCTION__, ## args)
 #define function_in()				printf("%s entry!\n", __FUNCTION__)
 #define function_out()				printf("%s exit!\n", __FUNCTION__)
 #else
@@ -15,7 +15,7 @@
 #endif
 
 #if(ERR)
-#define run_err(fmt, args...)		printf("[VIVSMART:%s] " fmt, __FUNCTION__, ## args)
+#define run_err(fmt, args...)		printf("[RUN:%s] " fmt, __FUNCTION__, ## args)
 #else
 #define run_err(fmt, args...)	
 #endif
