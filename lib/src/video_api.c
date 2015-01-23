@@ -122,13 +122,13 @@ void * Com_Init(void)
 		goto exit;
 	}
 	comInst->fd = fd;
-	if(fcntl(fd, F_SETFL, 0) <0)
+	if(fcntl(fd, F_SETFL, FNDELAY) <0)
 	{
 		video_err("fcntl failed!\n");
 	}
 	 else
 	{
-		video_err("fcntl = %d\n",fcntl(fd, F_SETFL,0));
+		video_err("fcntl = %d\n",fcntl(fd, F_SETFL,FNDELAY));
 	}
 	if(isatty(STDIN_FILENO) == 0)
 	{
@@ -266,13 +266,13 @@ int Com_SetConfig(void * Inst, PCOM_INFO comInfo)
 	return ret;
 }
 	
-int Com_sendData(void *Inst, void *buff, int datanum)
+int Com_SendData(void *Inst, void *buff, int dataNum)
 {
 	int ret = 0;
 	PCOM_INST comInst = (PCOM_INST)Inst;
 	
 	function_in();
-	ret = write(comInst->fd, buff,datanum);
+	ret = write(comInst->fd, buff,dataNum);
 	if(ret < 0)
 	{
 		video_err("write data to com err!!!\n");
@@ -282,6 +282,21 @@ int Com_sendData(void *Inst, void *buff, int datanum)
 	return ret;
 }
 
+int Com_RecieveData(void *Inst, void *buff, int dataNum )
+{
+	int ret = 0;
+	PCOM_INST comInst = (PCOM_INST)Inst;
+	
+	function_in();
+	ret = read(comInst->fd, buff,dataNum);
+	if(ret < 0)
+	{
+		video_err("write data to com err!!!\n");
+	}
+
+	function_out();
+	return ret;
+}
 int Com_Release(void *Inst)
 {
 	int ret = 0;
