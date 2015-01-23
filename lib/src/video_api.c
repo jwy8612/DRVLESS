@@ -108,7 +108,7 @@ int Video_Release(void * vInst)
 
 }
 
-void * Com_Init(void)
+void * Com_Init()
 {
 	int fd;
 	PCOM_INST comInst = NULL;
