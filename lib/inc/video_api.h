@@ -40,6 +40,34 @@ typedef struct COM_INFO
 	STOP stop;
 }COM_INFO, *PCOM_INFO;
 
+typedef struct MOTOR_CMD_INFO
+{
+	char bMoterCmd;
+	signed char motorV;
+}MOTOR_CMD_INFO, *PMOTOR_CMD_INFO;
+typedef struct SERVO_CMD_INFO
+{
+
+}SERVO_CMD_INFO, *PSERVO_CMD_INFO;
+typedef struct LIGHT_CMD_INFO
+{
+
+}LIGHT_CMD_INFO, *PLIGHT_CMD_INFO;
+typedef struct HORN_CMD_INFO
+{
+
+}HORN_CMD_INFO, *PHORN_CMD_INFO;
+
+
+
+typedef struct COMMAND_INFO
+{
+	struct MOTOR_CMD_INFO motorCmd;
+	struct SERVO_CMD_INFO servoCmd;
+	void *comInst;
+	char commadData[50];
+	char dataLength;
+}COMMAND_INFO,*PCOMMAND_INFO;
 
 
 void *Video_Init();

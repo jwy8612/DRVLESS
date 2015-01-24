@@ -39,6 +39,7 @@ int devinit()
 		run_err("com set failed,ret = %d\n",ret);
 		goto exit1;
 	}
+	#if 1
 	videoInst = Video_Init();
 	ret = Video_GetConfig(videoInst);
 	if(ret < 0)
@@ -46,7 +47,8 @@ int devinit()
 		run_err("video get failed,ret = %d\n",ret);
 		goto exit2;
 	}
-	
+	#endif
+	return ret;
 	exit1: return -1;
 	exit2: return -2;
 	
@@ -86,7 +88,7 @@ int main(void)
 	{
 		run_err("dev init failed,ret = %d\n",ret);
 	}
-	for(i = 0; i < 100; i ++)
+	for(i = 0; i < 10; i ++)
 	{
 		ret = Com_SendData(comInst,combuff, 20);
 		if(ret < 20)

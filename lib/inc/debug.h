@@ -17,7 +17,7 @@
 #endif
 
 #if(ERR)
-#define video_err(fmt, args...)		printf("[VIVSMART:%s] " fmt, __FUNCTION__, ## args)
+#define video_err(fmt, args...)		printf("VIDEO:%s] " fmt, __FUNCTION__, ## args)
 #else
 #define video_err(fmt, args...)	
 #endif

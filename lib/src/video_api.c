@@ -100,9 +100,24 @@ int Video_Release(void * vInst)
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
 
 	function_in();
-	close(videoInfo->fd);// 关闭设备     
-	free(videoInfo);
 	
+	if(videoInfo != NULL)
+	{
+		if(videoInfo->fd > 0)
+		close(videoInfo->fd);// 关闭设备
+		else
+		{
+			video_err("video not open!!!\n");
+			ret = -1;
+		}
+		free(videoInfo);
+	}
+	
+	else
+	{
+		video_err("videoInst not malloc!!!\n");
+		ret = -2;
+	}
 	function_out();
 	return ret;
 
@@ -111,33 +126,29 @@ int Video_Release(void * vInst)
 void * Com_Init()
 {
 	int fd;
+	int ret = 0;
 	PCOM_INST comInst = NULL;
 	
 	function_in();
 	comInst = (PCOM_INST)malloc(sizeof(COM_INST));
-	fd = open("/dev/ttySUB0",O_RDWR | O_NOCTTY | O_NDELAY);   
-	if(fd < 0)
+	fd = open("/dev/ttyUSB0",O_RDWR | O_NOCTTY | O_NDELAY);   
+	if(fd <= 0)
 	{
 		video_err("open ttyusb0 failed!!!\n");
 		goto exit;
 	}
 	comInst->fd = fd;
-	if(fcntl(fd, F_SETFL, FNDELAY) <0)
+	ret = fcntl(fd, F_SETFL, FNDELAY);
+	if(ret  <0)
 	{
 		video_err("fcntl failed!\n");
 	}
-	 else
-	{
-		video_err("fcntl = %d\n",fcntl(fd, F_SETFL,FNDELAY));
-	}
+	video_dbg("fcntl = %d\n",fcntl(fd, F_SETFL,FNDELAY));
 	if(isatty(STDIN_FILENO) == 0)
 	{
 		video_err("standard input is not a terminal device\n");
 	}
-	else
-	{
-		video_err("isatty success!\n");
-	}
+	video_err("isatty success!\n");
 	video_dbg("fd-open = %d\n",fd);
 	
 	function_out();
@@ -162,26 +173,26 @@ int Com_SetConfig(void * Inst, PCOM_INFO comInfo)
 	{
 		case BR9600:
 		{
-       			 cfsetispeed(&termIos,B9600);
+       		 cfsetispeed(&termIos,B9600);
   			 cfsetospeed(&termIos,B9600); 
 			 break;
 		}
 		case BR19200:
 		{
-       			 cfsetispeed(&termIos,B19200);
+       		 cfsetispeed(&termIos,B19200);
   			 cfsetospeed(&termIos,B19200); 
 			 break;
 
 		}
 		case BR38400:
 		{
-       			 cfsetispeed(&termIos,B38400);
+       		 cfsetispeed(&termIos,B38400);
   			 cfsetospeed(&termIos,B38400); 
 			 break;
 		}
 		case BR115200:
 		{
-       			 cfsetispeed(&termIos,B115200);
+       		 cfsetispeed(&termIos,B115200);
   			 cfsetospeed(&termIos,B115200); 
 			 break;
 		}
@@ -303,9 +314,23 @@ int Com_Release(void *Inst)
 	PCOM_INST comInst = (PCOM_INST)Inst;
 
 	function_in();
-	close(comInst->fd);// 关闭设备     
-	free(comInst);
-
+	
+	if(comInst != NULL)
+	{
+		if(comInst->fd > 0)
+		close(comInst->fd);// 关闭设备     
+		else
+		{
+			video_err("com not open!!!\n");
+			ret = -1;
+		}
+		free(comInst);
+	}
+	else
+	{
+		video_err("comInst not malloc!!!\n");
+		ret = -2;
+	}
 	function_out();
 	return ret;
 
