@@ -25,6 +25,10 @@ int devinit()
 {
 	int ret = 0;
 	COM_INFO comInfo;
+	v4l2_capability videoCap;
+	v4l2_fmtdesc videoFmt;
+	v4l2_std_id videoStd;
+	v4l2_format fmt;
 
 	function_in();
 
@@ -41,13 +45,32 @@ int devinit()
 	}
 	#if 1
 	videoInst = Video_Init();
-	ret = Video_GetConfig(videoInst);
+	ret = Video_GetConfig_CAP(videoInst,&videoCap);
 	if(ret < 0)
 	{
-		run_err("video get failed,ret = %d\n",ret);
+		run_err("video get cap failed,ret = %d\n",ret);
+		goto exit2;
+	}
+	ret = Video_GetConfig_FMT(videoInst,&videoFmt);
+	if(ret < 0)
+	{
+		run_err("video get fmt failed,ret = %d\n",ret);
+		goto exit2;
+	}
+	ret = Video_GetConfig_STD(videoInst,&videoStd);
+	if(ret < 0)
+	{
+		run_err("video get std failed,ret = %d\n",ret);
 		goto exit2;
 	}
 	#endif
+	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	fmt.fmt.pix.width = 720;
+	fmt.fmt.pix.height = 576;
+	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+	fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
+	Video_SetConfig_FMT(videoInst,&videoFmt);
+
 	return ret;
 	exit1: return -1;
 	exit2: return -2;

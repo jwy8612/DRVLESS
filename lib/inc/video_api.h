@@ -1,6 +1,11 @@
 #ifndef VIDEOAPI_H
 #define VIDEOAPI_H
+#include <linux/videodev2.h>
 
+typedef struct v4l2_capability v4l2_capability;
+typedef struct v4l2_fmtdesc v4l2_fmtdesc;
+typedef struct v4l2_format    v4l2_format;
+typedef struct v4l2_requestbuffers v4l2_requestbuffers;
 typedef enum BAUND_RATE
 {
 	BR9600 = 0,
@@ -72,7 +77,12 @@ typedef struct COMMAND_INFO
 
 void *Video_Init();
 
-int Video_GetConfig(void * vInst);
+int Video_GetConfig_CAP(void * vInst,v4l2_capability *cap);
+int Video_GetConfig_FMT(void * vInst, v4l2_fmtdesc  *fmtdesc);
+int Video_GetConfig_STD(void * vInst,v4l2_std_id *std);
+int Video_SetConfig_FMT(void * vInst,v4l2_format *videoFmt);
+int Video_BuffersInit(void * vInst,v4l2_requestbuffers* req);
+
 int Video_Release(void * vInst);
 
 void * Com_Init();

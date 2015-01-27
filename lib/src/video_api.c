@@ -17,8 +17,8 @@
 #include <unistd.h>
 #include "video_api.h"
 #include <string.h>
-
-
+#include <errno.h>
+#include<sys/mman.h>
 
 #define test 1
 
@@ -29,7 +29,7 @@ void *Video_Init()
 
 	function_in();
 	videoInfo = (PVIDEO_INFO)malloc(sizeof(VIDEO_INFO));
-	fd = open("/dev/video0",O_RDWR);   
+	fd = open("/dev/video0",O_RDWR,0);   
 	if(fd < 0)
 	{
 		video_err("open video0 failed!!!\n");
@@ -42,23 +42,71 @@ void *Video_Init()
 	return videoInfo;
 
 }
-int Video_SetConfig()
-{
-	int ret = 0;
-
-	function_in();
-
-
-	function_out();
-	return ret;
-
-}
-int Video_GetConfig(void * vInst)
+int Video_SetConfig_FMT(void * vInst,v4l2_format *videoFmt)
 {
 	int ret = 0;
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
-	v4l2_capability *cap = &(videoInfo->videoCap);
-	v4l2_fmtdesc  *fmtdesc = &(videoInfo->videoFmt);     
+	v4l2_format * fmt = &(videoInfo->videoFmt);
+	function_in();
+	memcpy(fmt,videoFmt,sizeof(v4l2_format));
+	ret = ioctl(videoInfo->fd, VIDIOC_S_FMT, &fmt);
+	if(ret == -1)
+	{
+		video_err("set video fmt failed!!!\n");
+	}
+
+	function_out();
+	return ret;
+}
+int Video_BuffersInit(void * vInst,v4l2_requestbuffers* req)
+{
+	int ret = 0;
+	int i;
+	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
+	struct v4l2_buffer    buf;
+	VIDEO_BUFF *buffers = videoInfo->videoBuffer;
+
+	function_in();
+
+	ret = ioctl(videoInfo->fd,VIDIOC_REQBUFS,&req);
+	if(ret < 0)
+	{
+		video_err("request buffers failed!!!\n");
+	}
+
+	for (i = 0; i < BUFFNUM; i ++) 
+	{
+		memset( &buf, 0, sizeof(buf) );
+		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		buf.memory = V4L2_MEMORY_MMAP;
+		buf.index = i;
+		ret = ioctl(videoInfo->fd, VIDIOC_QUERYBUF, &buf);
+		if(ret < 0)
+		{
+			video_err("get buffers addr failed!!!\n");
+		}
+		buffers[i].length = buf.length;
+		buffers[i].start = mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, videoInfo->fd, buf.m.offset);
+		 
+		if (buffers[i].start == MAP_FAILED) 
+		{
+			video_err("mmap failed!!!\n");
+		}
+		ret = ioctl(videoInfo->fd, VIDIOC_QBUF, &buf);
+		if(ret == -1) 
+		{
+			video_err("QBUF failed!!!\n");
+		}
+
+	}
+	function_out();
+	
+	return ret;
+}
+int Video_GetConfig_CAP(void * vInst,v4l2_capability *cap)
+{
+	int ret = 0;
+	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
 
 	function_in();
  	ret = ioctl(videoInfo->fd, VIDIOC_QUERYCAP, cap);   //查询设备属性
@@ -69,21 +117,55 @@ int Video_GetConfig(void * vInst)
 	}
   	video_dbg("Driver Name:%s\nCard Name:%s\nBus info:%s\nDriver Version:%u.%u.%u\n",  
             cap->driver,cap->card,cap->bus_info,(cap->version>>16)&0XFF, (cap->version>>8)&0XFF,cap->version&0XFF);    
-   	fmtdesc->index=0;     
+	function_out();
+exit: return ret;
+
+}
+
+int Video_GetConfig_FMT(void * vInst, v4l2_fmtdesc  *fmtdesc)
+{
+	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
+	int ret = 0;
+	function_in();
+	fmtdesc->index=0;     
 	fmtdesc->type=V4L2_BUF_TYPE_VIDEO_CAPTURE;     
-#if test
 	video_dbg("Support format:\n");     
 	while(ioctl(videoInfo->fd,VIDIOC_ENUM_FMT,fmtdesc)!=-1)     //获取当前驱动支持的视频格式
 	{     
 		video_dbg("\t%d.%s\n",fmtdesc->index+1,fmtdesc->description);     
 		fmtdesc->index++;  
-   	 }  
+	}  
 
-#endif	
 	function_out();
-exit: return ret;
-
+	return ret;
 }
+
+int Video_GetConfig_STD(void * vInst,v4l2_std_id *std)
+{
+	int ret = 0;
+	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
+
+	function_in();
+	do {
+		ret = ioctl(videoInfo->fd, VIDIOC_QUERYSTD, &std);
+		} while (ret == -1 && errno == EAGAIN);
+	if(ret < 0)
+	{
+		video_err("Get Video STD Failed!!!\n");     
+	}
+	switch (*std) 
+	{
+		case V4L2_STD_NTSC:
+		video_dbg("Support STD: V4L2_STD_NTSC\n");     
+		break;
+		case V4L2_STD_PAL:
+		video_dbg("Support STD: V4L2_STD_PAL\n");     
+		break;
+	}
+	function_out();
+	return ret;
+}
+
 int Video_GetFrame()
 {
 	int ret = 0;
