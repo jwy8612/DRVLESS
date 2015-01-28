@@ -342,8 +342,12 @@ struct v4l2_pix_format {
 #define V4L2_PIX_FMT_SQ905C   v4l2_fourcc('9', '0', '5', 'C') /* compressed RGGB bayer */
 #define V4L2_PIX_FMT_PJPG     v4l2_fourcc('P', 'J', 'P', 'G') /* Pixart 73xx JPEG */
 #define V4L2_PIX_FMT_YVYU    v4l2_fourcc('Y', 'V', 'Y', 'U') /* 16  YVU 4:2:2     */
+////////////////////////////////
+#define V4L2_PIX_FMT_YUV420P    v4l2_fourcc('4', '2', '0', 'P') /* 12  YUV 4:2:0 2 planar */
 
 /*
+
+
  *	F O R M A T   E N U M E R A T I O N
  */
 struct v4l2_fmtdesc {

@@ -2,7 +2,6 @@
 #define TYPEDEF_H
 #include <termios.h>
 #include "video_api.h"
-#define BUFFNUM 4
 typedef struct termios termios;
 typedef struct VIDEO_BUFF 
 {
@@ -13,7 +12,7 @@ typedef struct VIDEO_BUFF
 typedef struct VIDEO_INFO
 {
 	int fd;
-	v4l2_format videoFmt;
+	int buffIndex;
 	VIDEO_BUFF  videoBuffer[BUFFNUM];
 }VIDEO_INFO, *PVIDEO_INFO;
 

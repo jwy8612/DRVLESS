@@ -29,7 +29,7 @@ void *Video_Init()
 
 	function_in();
 	videoInfo = (PVIDEO_INFO)malloc(sizeof(VIDEO_INFO));
-	fd = open("/dev/video0",O_RDWR,0);   
+	fd = open("/dev/video2",O_RDWR | O_NONBLOCK, 0);   
 	if(fd < 0)
 	{
 		video_err("open video0 failed!!!\n");
@@ -42,68 +42,8 @@ void *Video_Init()
 	return videoInfo;
 
 }
-int Video_SetConfig_FMT(void * vInst,v4l2_format *videoFmt)
-{
-	int ret = 0;
-	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
-	v4l2_format * fmt = &(videoInfo->videoFmt);
-	function_in();
-	memcpy(fmt,videoFmt,sizeof(v4l2_format));
-	ret = ioctl(videoInfo->fd, VIDIOC_S_FMT, &fmt);
-	if(ret == -1)
-	{
-		video_err("set video fmt failed!!!\n");
-	}
 
-	function_out();
-	return ret;
-}
-int Video_BuffersInit(void * vInst,v4l2_requestbuffers* req)
-{
-	int ret = 0;
-	int i;
-	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
-	struct v4l2_buffer    buf;
-	VIDEO_BUFF *buffers = videoInfo->videoBuffer;
-
-	function_in();
-
-	ret = ioctl(videoInfo->fd,VIDIOC_REQBUFS,&req);
-	if(ret < 0)
-	{
-		video_err("request buffers failed!!!\n");
-	}
-
-	for (i = 0; i < BUFFNUM; i ++) 
-	{
-		memset( &buf, 0, sizeof(buf) );
-		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		buf.memory = V4L2_MEMORY_MMAP;
-		buf.index = i;
-		ret = ioctl(videoInfo->fd, VIDIOC_QUERYBUF, &buf);
-		if(ret < 0)
-		{
-			video_err("get buffers addr failed!!!\n");
-		}
-		buffers[i].length = buf.length;
-		buffers[i].start = mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, videoInfo->fd, buf.m.offset);
-		 
-		if (buffers[i].start == MAP_FAILED) 
-		{
-			video_err("mmap failed!!!\n");
-		}
-		ret = ioctl(videoInfo->fd, VIDIOC_QBUF, &buf);
-		if(ret == -1) 
-		{
-			video_err("QBUF failed!!!\n");
-		}
-
-	}
-	function_out();
-	
-	return ret;
-}
-int Video_GetConfig_CAP(void * vInst,v4l2_capability *cap)
+int Video_GetConfig_CAP(void * vInst,struct v4l2_capability *cap)
 {
 	int ret = 0;
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
@@ -117,15 +57,18 @@ int Video_GetConfig_CAP(void * vInst,v4l2_capability *cap)
 	}
   	video_dbg("Driver Name:%s\nCard Name:%s\nBus info:%s\nDriver Version:%u.%u.%u\n",  
             cap->driver,cap->card,cap->bus_info,(cap->version>>16)&0XFF, (cap->version>>8)&0XFF,cap->version&0XFF);    
+  	video_dbg("capbility = %d \n",cap->capabilities);
+
 	function_out();
 exit: return ret;
 
 }
 
-int Video_GetConfig_FMT(void * vInst, v4l2_fmtdesc  *fmtdesc)
+int Video_GetConfig_FMT(void * vInst, struct v4l2_fmtdesc  *fmtdesc)
 {
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
 	int ret = 0;
+	struct v4l2_format fmt;
 	function_in();
 	fmtdesc->index=0;     
 	fmtdesc->type=V4L2_BUF_TYPE_VIDEO_CAPTURE;     
@@ -136,22 +79,133 @@ int Video_GetConfig_FMT(void * vInst, v4l2_fmtdesc  *fmtdesc)
 		fmtdesc->index++;  
 	}  
 
+	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; 
+	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32; 
+	if(ioctl(videoInfo->fd,VIDIOC_TRY_FMT,&fmt) ==-1)
+		if(errno == EINVAL)
+		video_dbg("not support format V4L2_PIX_FMT_RGB32\n");
+	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420P; 
+	if(ioctl(videoInfo->fd,VIDIOC_TRY_FMT,&fmt) == -1)
+		if(errno == EINVAL)
+		video_dbg("not support format V4L2_PIX_FMT_YUV420P\n");
+		
 	function_out();
 	return ret;
 }
 
-int Video_GetConfig_STD(void * vInst,v4l2_std_id *std)
+int Video_SetConfig_CROP(void * vInst, struct v4l2_crop *cropcap)
 {
 	int ret = 0;
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
 
 	function_in();
+
+	ret = ioctl(videoInfo->fd, VIDIOC_S_CROP, cropcap);
+	if(ret < 0)
+	{
+		video_err("set video crop failed!!!errno = %d\n",errno);
+	}
+	function_out();
+	return ret;
+}
+
+int Video_SetConfig_FMT(void * vInst,struct v4l2_format *videoFmt)
+{
+	int ret = 0;
+	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
+
+	function_in();
+	
+	ret = ioctl(videoInfo->fd, VIDIOC_S_FMT, videoFmt);
+	if(ret == -1)
+	{
+		video_err("set video fmt failed!!!errno = %d\n",errno);
+	}
+
+	function_out();
+	return ret;
+}
+int Video_BuffersInit(void * vInst,struct v4l2_requestbuffers* req)
+{
+	int ret = 0;
+	int i;
+	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
+	struct v4l2_buffer    buf;
+	VIDEO_BUFF *buffers = videoInfo->videoBuffer;
+
+	function_in();
+
+	ret = ioctl(videoInfo->fd,VIDIOC_REQBUFS,&req);
+	if(ret < 0)
+	{
+		video_err("request buffers failed!!!errno = %d\n",errno);
+	}
+
+	for (i = 0; i < BUFFNUM; i ++) 
+	{
+		memset( &buf, 0, sizeof(buf) );
+		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		buf.memory = V4L2_MEMORY_MMAP;
+		buf.index = i;
+		ret = ioctl(videoInfo->fd, VIDIOC_QUERYBUF, &buf);
+		if(ret < 0)
+		{
+			video_err("get buffers addr failed!!!errno = %d\n",errno);
+		}
+		buffers[i].length = buf.length;
+		buffers[i].start = mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, videoInfo->fd, buf.m.offset);
+		 
+		if (buffers[i].start == MAP_FAILED) 
+		{
+			video_err("mmap failed!!!\n");
+		}
+		ret = ioctl(videoInfo->fd, VIDIOC_QBUF, &buf);
+		if(ret == -1) 
+		{
+			video_err("QBUF failed!!!errno = %d\n",errno);
+		}
+
+	}
+	function_out();
+	
+	return ret;
+}
+
+
+int Video_GetCrrent_FMT(void * vInst)
+{	
+	struct v4l2_format fmt;
+	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
+	struct v4l2_crop cropcap; 
+	int ret = 0;
+
+	function_in();
+	memset(&cropcap, 0, sizeof(cropcap));
+	cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+	ret = ioctl(videoInfo->fd, VIDIOC_G_CROP, &cropcap);
+	if (!ret) {
+		video_dbg("dev w = %d,h = %d \n",  cropcap.c.width, cropcap.c.height); 
+	}
+
+	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	ioctl(videoInfo->fd, VIDIOC_G_FMT, &fmt);
+	video_dbg("Current data format information:\n\twidth:%d\n\theight:%d\n",
+				fmt.fmt.pix.width,fmt.fmt.pix.height);
+	function_out();
+	return ret;
+}
+int Video_GetConfig_STD(void * vInst,v4l2_std_id *std)
+{
+	int ret = 0;
+	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
+	function_in();
 	do {
-		ret = ioctl(videoInfo->fd, VIDIOC_QUERYSTD, &std);
+		ret = ioctl(videoInfo->fd, VIDIOC_QUERYSTD, std);
 		} while (ret == -1 && errno == EAGAIN);
 	if(ret < 0)
 	{
-		video_err("Get Video STD Failed!!!\n");     
+		video_err("Get Video STD Failed!!!errno = %d\n",errno);     
 	}
 	switch (*std) 
 	{
@@ -162,15 +216,41 @@ int Video_GetConfig_STD(void * vInst,v4l2_std_id *std)
 		video_dbg("Support STD: V4L2_STD_PAL\n");     
 		break;
 	}
+
 	function_out();
 	return ret;
 }
 
-int Video_GetFrame()
+int Video_GetFrame(void * vInst)
 {
 	int ret = 0;
-
+	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
+	struct v4l2_buffer buf;
+	FILE * file;
 	function_in();
+	memset(&buf,0,sizeof(buf));
+	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	buf.memory = V4L2_MEMORY_MMAP;
+	buf.index = videoInfo->buffIndex;
+	//读取缓存
+	ret = ioctl(videoInfo->fd,VIDIOC_DQBUF,&buf);
+	if(ret < 0)
+	{
+		video_err("VIDIOC_DQBUF failed!!!\n");
+	}
+	file = fopen("/mnt/sdcard/test.yuv","wb+");
+	if(file < 0)
+	{
+		video_err("open test.yuv failed!!!\n");
+	}
+	fwrite(&(videoInfo->videoBuffer[videoInfo->buffIndex].start),1,videoInfo->videoBuffer[videoInfo->buffIndex].length,file);
+	fclose(file);
+	//重新放入缓存队列
+	ret = ioctl(videoInfo->fd,VIDIOC_QBUF,&buf);
+	if(ret < 0)
+	{
+		video_err("VIDIOC_QBUF failed!!!\n");
+	}
 
 
 	function_out();
