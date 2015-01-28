@@ -29,7 +29,7 @@ void *Video_Init()
 
 	function_in();
 	videoInfo = (PVIDEO_INFO)malloc(sizeof(VIDEO_INFO));
-	fd = open("/dev/video2",O_RDWR | O_NONBLOCK, 0);   
+	fd = open("/dev/video0",O_RDWR | O_NONBLOCK, 0);   
 	if(fd < 0)
 	{
 		video_err("open video0 failed!!!\n");
@@ -84,7 +84,7 @@ int Video_GetConfig_FMT(void * vInst, struct v4l2_fmtdesc  *fmtdesc)
 	if(ioctl(videoInfo->fd,VIDIOC_TRY_FMT,&fmt) ==-1)
 		if(errno == EINVAL)
 		video_dbg("not support format V4L2_PIX_FMT_RGB32\n");
-	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420P; 
+	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; 
 	if(ioctl(videoInfo->fd,VIDIOC_TRY_FMT,&fmt) == -1)
 		if(errno == EINVAL)
 		video_dbg("not support format V4L2_PIX_FMT_YUV420P\n");
@@ -135,7 +135,7 @@ int Video_BuffersInit(void * vInst,struct v4l2_requestbuffers* req)
 
 	function_in();
 
-	ret = ioctl(videoInfo->fd,VIDIOC_REQBUFS,&req);
+	ret = ioctl(videoInfo->fd,VIDIOC_REQBUFS,req);
 	if(ret < 0)
 	{
 		video_err("request buffers failed!!!errno = %d\n",errno);
@@ -153,18 +153,20 @@ int Video_BuffersInit(void * vInst,struct v4l2_requestbuffers* req)
 			video_err("get buffers addr failed!!!errno = %d\n",errno);
 		}
 		buffers[i].length = buf.length;
+		video_err("buf.length = %d\n",buf.length);
 		buffers[i].start = mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, videoInfo->fd, buf.m.offset);
 		 
 		if (buffers[i].start == MAP_FAILED) 
 		{
 			video_err("mmap failed!!!\n");
 		}
+#if 0
 		ret = ioctl(videoInfo->fd, VIDIOC_QBUF, &buf);
 		if(ret == -1) 
 		{
 			video_err("QBUF failed!!!errno = %d\n",errno);
 		}
-
+#endif
 	}
 	function_out();
 	
@@ -226,24 +228,51 @@ int Video_GetFrame(void * vInst)
 	int ret = 0;
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
 	struct v4l2_buffer buf;
+	enum v4l2_buf_type type;
+	int i;
 	FILE * file;
 	function_in();
+	
+	memset(&buf,0,sizeof(buf));
+	for(i = 0;i < 4; i++)
+	{			
+		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;	
+		buf.memory = V4L2_MEMORY_MMAP;	
+		buf.index = i;			
+		ret = ioctl(videoInfo->fd, VIDIOC_QBUF, &buf);
+		if(ret == -1) 
+		{
+			video_err("QBUF failed!!!errno = %d\n",errno);
+		}
+	}
+
+	
+	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	
+	ret = ioctl(videoInfo->fd, VIDIOC_STREAMON, &type);
+	if(ret < 0)
+	{					 
+		video_err("VIDIOC_STREAMON failed!!!errno = %d\n",errno);     
+	}
+
 	memset(&buf,0,sizeof(buf));
 	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	buf.memory = V4L2_MEMORY_MMAP;
 	buf.index = videoInfo->buffIndex;
 	//读取缓存
-	ret = ioctl(videoInfo->fd,VIDIOC_DQBUF,&buf);
-	if(ret < 0)
-	{
-		video_err("VIDIOC_DQBUF failed!!!\n");
-	}
+	while(ioctl(videoInfo->fd,VIDIOC_DQBUF,&buf) < 0);
+	//ret = ioctl(videoInfo->fd,VIDIOC_DQBUF,&buf);
+//	if(ret < 0)
+//	{
+	//	video_err("VIDIOC_DQBUF failed!!!\n");
+	//}
 	file = fopen("/mnt/sdcard/test.yuv","wb+");
 	if(file < 0)
 	{
 		video_err("open test.yuv failed!!!\n");
 	}
-	fwrite(&(videoInfo->videoBuffer[videoInfo->buffIndex].start),1,videoInfo->videoBuffer[videoInfo->buffIndex].length,file);
+	video_err("index = %d \nlength: %d \n",videoInfo->buffIndex,videoInfo->videoBuffer[videoInfo->buffIndex].length);
+	fwrite(videoInfo->videoBuffer[videoInfo->buffIndex].start,1,videoInfo->videoBuffer[videoInfo->buffIndex].length,file);
 	fclose(file);
 	//重新放入缓存队列
 	ret = ioctl(videoInfo->fd,VIDIOC_QBUF,&buf);

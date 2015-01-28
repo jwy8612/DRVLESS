@@ -82,6 +82,7 @@ int Video_GetConfig_STD(void * vInst,v4l2_std_id *std);
 int Video_SetConfig_FMT(void * vInst,struct v4l2_format *videoFmt);
 int Video_BuffersInit(void * vInst,struct v4l2_requestbuffers* req);
 int Video_GetCrrent_FMT(void * vInst);
+int Video_GetFrame(void * vInst);
 
 int Video_Release(void * vInst);
 

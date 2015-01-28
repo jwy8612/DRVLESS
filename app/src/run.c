@@ -18,7 +18,7 @@ void * comInst = NULL;
 void * videoInst = NULL;
 
 #define	VIDEOTEST 1 
-#define 	VIMICRO 1
+#define 	VIMICRO 0
 #define	COMTEST 0
 #if TEST
 char combuff[20]={1,2,3,4,5,6,7,8,9,0,9,8,7,6,5,4,3,2,1,0};
@@ -72,10 +72,10 @@ int devinit()
 	cropcap.c.width = 1920;
 	cropcap.c.height= 1088;
 	#else
-	cropcap.c.width = 720;
-	cropcap.c.height= 576;
+	cropcap.c.width = 640;
+	cropcap.c.height= 480;
 	#endif
-	Video_SetConfig_CROP(videoInst, &cropcap);
+//	Video_SetConfig_CROP(videoInst, &cropcap);
 
 	#if 0
 	ret = Video_GetConfig_STD(videoInst,&videoStd);
@@ -91,8 +91,8 @@ int devinit()
 		fmt.fmt.pix.height = 736;
 	#else
 		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-		fmt.fmt.pix.width = 720;
-		fmt.fmt.pix.height = 576;
+		fmt.fmt.pix.width = 640;
+		fmt.fmt.pix.height = 480;
 
 	#endif
 	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -101,7 +101,7 @@ int devinit()
 
 
 	memset(&req, 0, sizeof(req));
-	req.count = 8;
+	req.count = 4;
 	req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; 
 	req.memory = V4L2_MEMORY_MMAP; 
 	ret = Video_BuffersInit(videoInst,&req);
@@ -156,7 +156,7 @@ int main(void)
 	Video_GetCrrent_FMT(videoInst);
 
 
-//	Video_GetFrame(videoInst);
+	Video_GetFrame(videoInst);
 #if 0
 	for(i = 0; i < 10; i ++)
 	{
