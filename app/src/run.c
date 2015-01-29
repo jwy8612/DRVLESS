@@ -18,25 +18,20 @@ void * comInst = NULL;
 void * videoInst = NULL;
 
 #define	VIDEOTEST 1 
-#define 	VIMICRO 0
 #define	COMTEST 0
-#if TEST
+
 char combuff[20]={1,2,3,4,5,6,7,8,9,0,9,8,7,6,5,4,3,2,1,0};
-#endif
 
 int devinit()
 {
 	int ret = 0;
 	COM_INFO comInfo;
-	struct v4l2_capability videoCap;
-	struct v4l2_fmtdesc videoFmt;
-	v4l2_std_id videoStd;
-	struct v4l2_format fmt;
-	struct v4l2_crop cropcap;
-	struct v4l2_requestbuffers req;
-
-
+	VIDEO_PARAM videoParam;
+	
 	function_in();
+	memset(&comInfo, 0, sizeof(comInfo));
+	memset(&videoParam, 0, sizeof(videoParam));
+	
 #if COMTEST
 	comInst = Com_Init();
 	comInfo.baundRate = BR115200;
@@ -47,75 +42,34 @@ int devinit()
 	if(ret < 0)
 	{
 		run_err("com set failed,ret = %d\n",ret);
-		//goto exit1;
 	}
 #endif	
 #if VIDEOTEST
 	videoInst = Video_Init();
-	ret = Video_GetConfig_CAP(videoInst,&videoCap);
+	Video_Show_CAP(videoInst);
+	Video_Show_STD(videoInst);
+	Video_show_FMTDESC(videoInst);
+
+	videoParam.vCrop.bCROP = 0;
+	videoParam.vFmt.pixFmt = YUYV8bit;
+	videoParam.vFmt.width = 640;
+	videoParam.vFmt.height = 480;
+	
+	ret = Video_SetConfig(videoInst, &videoParam);
 	if(ret < 0)
 	{
-		run_err("video get cap failed,ret = %d\n",ret);
-		//goto exit2;
-	}
-	ret = Video_GetConfig_FMT(videoInst,&videoFmt);
-	if(ret < 0)
-	{
-		run_err("video get fmt failed,ret = %d\n",ret);
-		//goto exit2;
+		run_err("Video_SetConfig failed,ret = %d\n",ret);
 	}
 
-	cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	cropcap.c.left = 0;
-	cropcap.c.top= 0;
-	#if VIMICRO
-	cropcap.c.width = 1920;
-	cropcap.c.height= 1088;
-	#else
-	cropcap.c.width = 640;
-	cropcap.c.height= 480;
-	#endif
-//	Video_SetConfig_CROP(videoInst, &cropcap);
-
-	#if 0
-	ret = Video_GetConfig_STD(videoInst,&videoStd);
-	if(ret < 0)
-	{
-		run_err("video get std failed,ret = %d\n",ret);
-		goto exit2;
-	}
-	#endif
-	#if VIMICRO
-		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420P;
-		fmt.fmt.pix.width = 1280;
-		fmt.fmt.pix.height = 736;
-	#else
-		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-		fmt.fmt.pix.width = 640;
-		fmt.fmt.pix.height = 480;
-
-	#endif
-	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
-	Video_SetConfig_FMT(videoInst,&fmt);
-
-
-	memset(&req, 0, sizeof(req));
-	req.count = 4;
-	req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; 
-	req.memory = V4L2_MEMORY_MMAP; 
-	ret = Video_BuffersInit(videoInst,&req);
+	ret = Video_BuffersInit(videoInst);
 	if(ret < 0)
 	{
 		run_err("Video_Buffers Init failed,ret = %d\n",ret);
 	}
-
-
 #endif
+	function_out();
 
 	return ret;
-	exit1: return -1;
-	exit2: return -2;
 	
 }
 
@@ -153,11 +107,9 @@ int main(void)
 	{
 		run_err("dev init failed,ret = %d\n",ret);
 	}
-	Video_GetCrrent_FMT(videoInst);
 
-
-	Video_GetFrame(videoInst);
-#if 0
+//	Video_GetFrame(videoInst);
+#if COMTEST
 	for(i = 0; i < 10; i ++)
 	{
 		ret = Com_SendData(comInst,combuff, 20);

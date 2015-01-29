@@ -1,7 +1,34 @@
 #ifndef VIDEOAPI_H
 #define VIDEOAPI_H
-#include <linux/videodev2.h>
+
 #define BUFFNUM 4
+
+typedef struct VIDEO_CROP 
+{
+	char bCROP;
+	int top;
+	int left;
+	int width;
+	int height;
+} VIDEO_CROP;
+
+typedef enum PIX_FMT
+{
+	YUYV8bit = 0,
+	YUVBUT = 1,
+}PIX_FMT;
+
+typedef struct VIDEO_FMT 
+{
+	PIX_FMT pixFmt;
+	int width;
+	int height;
+} VIDEO_FMT;
+typedef struct VIDEO_PARAM 
+{
+	VIDEO_CROP vCrop;
+	VIDEO_FMT vFmt;
+} VIDEO_PARAM, *PVIDEO_PARAM;
 
 typedef enum BAUND_RATE
 {
@@ -73,17 +100,13 @@ typedef struct COMMAND_INFO
 
 
 void *Video_Init();
-
-int Video_GetConfig_CAP(void * vInst,struct v4l2_capability *cap);
-int Video_GetConfig_FMT(void * vInst, struct v4l2_fmtdesc  *fmtdesc);
-int Video_SetConfig_CROP(void * vInst, struct v4l2_crop *cropcap);
-
-int Video_GetConfig_STD(void * vInst,v4l2_std_id *std);
-int Video_SetConfig_FMT(void * vInst,struct v4l2_format *videoFmt);
-int Video_BuffersInit(void * vInst,struct v4l2_requestbuffers* req);
-int Video_GetCrrent_FMT(void * vInst);
+int Video_Show_CAP(void * vInst);
+int Video_Show_STD(void * vInst);
+int Video_show_FMTDESC(void * vInst);
+int Video_SetConfig(void * vInst, VIDEO_PARAM *videoParam);
+int Video_Showt_CurrentFMT(void * vInst);
+int Video_BuffersInit(void * vInst);
 int Video_GetFrame(void * vInst);
-
 int Video_Release(void * vInst);
 
 void * Com_Init();
