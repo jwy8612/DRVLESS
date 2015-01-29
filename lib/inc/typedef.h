@@ -5,12 +5,6 @@
 #include <linux/videodev2.h>
 typedef struct termios termios;
 
-typedef struct VIDEO_BUFF 
-{
-	void *start;
-	unsigned int  length;
-} VIDEO_BUFF ;
-
 typedef struct VIDEO_INFO
 {
 	int fd;

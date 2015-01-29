@@ -13,6 +13,10 @@
 #include <stdio.h>
 #include "video_api.h"
 #include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#define FRAMENUM 500
 
 void * comInst = NULL;
 void * videoInst = NULL;
@@ -47,7 +51,6 @@ int devinit()
 #if VIDEOTEST
 	videoInst = Video_Init();
 	Video_Show_CAP(videoInst);
-	Video_Show_STD(videoInst);
 	Video_show_FMTDESC(videoInst);
 
 	videoParam.vCrop.bCROP = 0;
@@ -60,7 +63,7 @@ int devinit()
 	{
 		run_err("Video_SetConfig failed,ret = %d\n",ret);
 	}
-
+	Video_Showt_CurrentFMT(videoInst);
 	ret = Video_BuffersInit(videoInst);
 	if(ret < 0)
 	{
@@ -99,32 +102,63 @@ int devRelease()
 int main(void)
 {
 	int ret = 0;
-	int i;
+	int framenum = 0;
+	int fd;
+	fd_set fds;
+	struct timeval time;
+	VIDEO_BUFF vBuff;
+	FILE * file;
 	
 	function_in();
+	
+	file = fopen("/mnt/sdcard/test.yuv","wb+");
+	if(file < 0)
+	{
+		video_err("open test.yuv failed!!!\n");
+	}
 	ret = devinit();
 	if(ret < 0)
 	{
 		run_err("dev init failed,ret = %d\n",ret);
 	}
-
-//	Video_GetFrame(videoInst);
-#if COMTEST
-	for(i = 0; i < 10; i ++)
+	Video_StartCapture(videoInst);
+	fd = Video_GetFd(videoInst);
+	while(1)
 	{
-		ret = Com_SendData(comInst,combuff, 20);
-		if(ret < 20)
+		FD_ZERO(&fds);  
+		FD_SET(fd, &fds); 
+		time.tv_sec = 3;
+		time.tv_usec = 0;
+
+		ret = select(fd + 1, &fds, NULL, NULL, &time);
+		if(ret < 0)
 		{
-			run_err("send data failed,ret = %d\n",ret);
+			run_err("select failed!!!\n");
+		}
+		if(ret == 0)
+		{
+			run_err("select time out!!!\n");
+		}
+		if(ret > 0)
+		{
+			Video_GetFrame(videoInst, &vBuff);
+		}	
+		fwrite(vBuff.start,1,vBuff.length,file);
+		framenum ++;
+		if(framenum == FRAMENUM)
+		{
+			goto exit;
 		}
 	}
-#endif
+
+exit:
+	
 	ret = devRelease();
 	if(ret < 0)
 	{
 		run_err("dev release failed,ret = %d\n",ret);
 	}
-	
+	fclose(file);
 	function_out();
 	return ret;
 }	

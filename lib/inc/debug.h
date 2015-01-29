@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define DBG 1
+#define DBG 0
 #define ERR 1
 
 #if(DBG)

@@ -30,6 +30,12 @@ typedef struct VIDEO_PARAM
 	VIDEO_FMT vFmt;
 } VIDEO_PARAM, *PVIDEO_PARAM;
 
+typedef struct VIDEO_BUFF 
+{
+	void *start;
+	unsigned int  length;
+} VIDEO_BUFF ;
+
 typedef enum BAUND_RATE
 {
 	BR9600 = 0,
@@ -106,7 +112,9 @@ int Video_show_FMTDESC(void * vInst);
 int Video_SetConfig(void * vInst, VIDEO_PARAM *videoParam);
 int Video_Showt_CurrentFMT(void * vInst);
 int Video_BuffersInit(void * vInst);
-int Video_GetFrame(void * vInst);
+int Video_StartCapture(void * vInst);
+int Video_GetFd(void * vInst);
+int Video_GetFrame(void * vInst, VIDEO_BUFF *vBuff);
 int Video_Release(void * vInst);
 
 void * Com_Init();
