@@ -1,5 +1,5 @@
-#ifndef TYPEDEF_H
-#define TYPEDEF_H
+#ifndef APPTYPEDEF_H
+#define APPTYPEDEF_H
 #include <termios.h>
 #include "video_api.h"
 #include <linux/videodev2.h>

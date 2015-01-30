@@ -15,6 +15,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "typedef.h"
 
 #define FRAMENUM 500
 
@@ -99,6 +100,133 @@ int devRelease()
 	exit2: return -2;
 
 }
+
+int getCmd(PCOMMAND_INFO cmdInfo)
+{
+	int ret = 0;
+	int index = 0;
+	int lenpos;
+	PMOTOR_CMD_INFO motorCmd 	= &(cmdInfo->motorCmd);
+	PSERVO_CMD_INFO servoCmd 	= &(cmdInfo->servoCmd);
+	PLIGHT_CMD_INFO lgtCmd 		= &(cmdInfo->lgtCmd);
+	PHORN_CMD_INFO hornCmd 		= &(cmdInfo->hornCmd);
+	char *cmdbuff 				= cmdInfo->commadData;
+	
+	function_in();
+	cmdbuff[index] = 0xff;
+	index ++;
+	lenpos = index;
+	index ++;
+	if(motorCmd->bMoterCmd)
+	{
+		cmdbuff[index] = 0x01;
+		index ++;
+		switch(motorCmd->cmdtype)
+		{
+			case 1 :
+				cmdbuff[index] = motorCmd->cmdtype;
+				index ++;
+				cmdbuff[index] = motorCmd->motorV;
+				index ++;
+				break;
+			default :
+				cmdbuff[index] = motorCmd->cmdtype;
+				index ++;
+				run_err("unsupported motor cmd type!!!\n");
+		}
+	}
+	else
+	{
+		cmdbuff[index] = 0x00;
+		index ++;
+	}
+	if(servoCmd->bservoCmd)
+	{
+		cmdbuff[index] = 0x01;
+		index ++;
+		switch(servoCmd->cmdtype)
+		{
+			case 1 :
+				cmdbuff[index] = servoCmd->cmdtype;
+				index ++;
+				memcpy(cmdbuff + index, &(servoCmd->servoA), 2);
+				index += 2;
+				memcpy(cmdbuff + index, &(servoCmd->servoV), 2);
+				index += 2;
+				break;
+			default :
+				cmdbuff[index] = servoCmd->cmdtype;
+				index ++;
+				run_err("unsupported servo cmd type!!!\n");
+		}
+	}
+	else
+	{
+		cmdbuff[index] = 0x00;
+		index ++;
+	}
+	if(lgtCmd->blightCmd)
+	{
+		cmdbuff[index] = 0x01;
+		index ++;
+		switch(lgtCmd->light)
+		{
+			case ximie :
+				cmdbuff[index] = 0;
+				index ++;
+				break;
+			case changliang :
+				cmdbuff[index] = 1;
+				index ++;
+				break;
+			default :
+				cmdbuff[index] = (char)lgtCmd->light;
+				index ++;
+				run_err("unsupported light cmd type!!!\n");
+		}
+	}
+	else
+	{
+		cmdbuff[index] = 0x00;
+		index ++;
+	}
+	
+	if(hornCmd->bhornCmd)
+	{
+		cmdbuff[index] = 0x01;
+		index ++;
+		switch(hornCmd->horn)
+		{
+			case quite:
+				cmdbuff[index] = 0;
+				index ++;
+				break;
+			case chang :
+				cmdbuff[index] = 1;
+				index ++;
+				break;
+			case duan :
+				cmdbuff[index] = 2;
+				index ++;
+				break;
+			case dduan :
+				cmdbuff[index] = 3;
+				index ++;
+				break;
+			default :
+				cmdbuff[index] = (char)hornCmd->horn;
+				index ++;
+				run_err("unsupported light cmd type!!!\n");
+		}
+	}
+	else
+	{
+		cmdbuff[index] = 0x00;
+		index ++;
+	}	
+	function_out();
+	return ret;
+}
 int main(void)
 {
 	int ret = 0;
@@ -108,6 +236,7 @@ int main(void)
 	struct timeval time;
 	VIDEO_BUFF vBuff;
 	FILE * file;
+	COMMAND_INFO cmdInfo;
 	
 	function_in();
 	
