@@ -17,13 +17,13 @@
 #include <unistd.h>
 #include "typedef.h"
 
-#define FRAMENUM 500
+#define FRAMENUM 10
 
 void * comInst = NULL;
 void * videoInst = NULL;
 
 #define	VIDEOTEST 1 
-#define	COMTEST 0
+#define	COMTEST 1
 
 char combuff[20]={1,2,3,4,5,6,7,8,9,0,9,8,7,6,5,4,3,2,1,0};
 
@@ -96,6 +96,7 @@ int devRelease()
 	}
 
 	function_out();
+	return ret;
 	exit1: return -1;
 	exit2: return -2;
 
@@ -104,12 +105,12 @@ int devRelease()
 int getCmd(PCOMMAND_INFO cmdInfo)
 {
 	int ret = 0;
-	int index = 0;
+	char index = 0;
 	int lenpos;
 	PMOTOR_CMD_INFO motorCmd 	= &(cmdInfo->motorCmd);
 	PSERVO_CMD_INFO servoCmd 	= &(cmdInfo->servoCmd);
 	PLIGHT_CMD_INFO lgtCmd 		= &(cmdInfo->lgtCmd);
-	PHORN_CMD_INFO hornCmd 		= &(cmdInfo->hornCmd);
+	PHORN_CMD_INFO hornCmd 	= &(cmdInfo->hornCmd);
 	char *cmdbuff 				= cmdInfo->commadData;
 	
 	function_in();
@@ -224,6 +225,14 @@ int getCmd(PCOMMAND_INFO cmdInfo)
 		cmdbuff[index] = 0x00;
 		index ++;
 	}	
+	cmdbuff[index] = 0x80;
+	cmdbuff[lenpos] = index - lenpos -1;
+	cmdInfo->dataLength = index + 1;
+	ret = Com_SendData(comInst, cmdbuff, cmdInfo->dataLength);
+	if(ret != index)
+	{
+		run_err("com send cmd err!!!\n");
+	}
 	function_out();
 	return ret;
 }
@@ -239,7 +248,6 @@ int main(void)
 	COMMAND_INFO cmdInfo;
 	
 	function_in();
-	
 	file = fopen("/mnt/sdcard/test.yuv","wb+");
 	if(file < 0)
 	{
@@ -250,6 +258,19 @@ int main(void)
 	{
 		run_err("dev init failed,ret = %d\n",ret);
 	}
+
+	
+	memset(&cmdInfo, 0, sizeof(cmdInfo));
+	cmdInfo.motorCmd.bMoterCmd = 1;
+	cmdInfo.motorCmd.cmdtype = 1;
+	cmdInfo.motorCmd.motorV =100;
+	cmdInfo.servoCmd.bservoCmd = 1;
+	cmdInfo.servoCmd.cmdtype = 1;
+	cmdInfo.servoCmd.servoA = 200;
+	cmdInfo.servoCmd.servoV = 512;
+	
+	getCmd(&cmdInfo);
+
 	Video_StartCapture(videoInst);
 	fd = Video_GetFd(videoInst);
 	while(1)
