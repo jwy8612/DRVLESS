@@ -510,7 +510,7 @@ int Com_SetConfig(void * Inst, PCOM_INFO comInfo)
 
 	}
  	termIos.c_cc[VTIME] = 0;
-  	termIos.c_cc[VMIN]  = 0;
+  	termIos.c_cc[VMIN]  = 10;
 	tcflush(comInst->fd,TCIOFLUSH);
 	tcsetattr(comInst->fd,TCSANOW,&termIos);	
 	function_out();
@@ -549,6 +549,20 @@ int Com_RecieveData(void *Inst, void *buff, int dataNum )
 	function_out();
 	return ret;
 }
+
+int Com_GetFd(void * Inst)
+{
+	int ret = 0;
+	PCOM_INST comInst = (PCOM_INST)Inst;
+	
+	function_in();
+	ret = comInst->fd;
+	
+	function_out();
+	return ret;
+
+}
+
 int Com_Release(void *Inst)
 {
 	int ret = 0;

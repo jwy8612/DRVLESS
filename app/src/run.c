@@ -16,14 +16,16 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "typedef.h"
+#include "func.h"
+#include "com_get.h"
 
 #define FRAMENUM 10
 
 void * comInst = NULL;
 void * videoInst = NULL;
 
-#define	VIDEOTEST 1 
-#define	COMTEST 1
+#define	VIDEOTEST 0 
+#define	COMTEST 0
 
 char combuff[20]={1,2,3,4,5,6,7,8,9,0,9,8,7,6,5,4,3,2,1,0};
 
@@ -56,8 +58,8 @@ int devinit()
 
 	videoParam.vCrop.bCROP = 0;
 	videoParam.vFmt.pixFmt = YUYV8bit;
-	videoParam.vFmt.width = 640;
-	videoParam.vFmt.height = 480;
+	videoParam.vFmt.width = picWd;
+	videoParam.vFmt.height = picHt;
 	
 	ret = Video_SetConfig(videoInst, &videoParam);
 	if(ret < 0)
@@ -102,140 +104,7 @@ int devRelease()
 
 }
 
-int getCmd(PCOMMAND_INFO cmdInfo)
-{
-	int ret = 0;
-	char index = 0;
-	int lenpos;
-	PMOTOR_CMD_INFO motorCmd 	= &(cmdInfo->motorCmd);
-	PSERVO_CMD_INFO servoCmd 	= &(cmdInfo->servoCmd);
-	PLIGHT_CMD_INFO lgtCmd 		= &(cmdInfo->lgtCmd);
-	PHORN_CMD_INFO hornCmd 	= &(cmdInfo->hornCmd);
-	char *cmdbuff 				= cmdInfo->commadData;
-	
-	function_in();
-	cmdbuff[index] = 0xff;
-	index ++;
-	lenpos = index;
-	index ++;
-	if(motorCmd->bMoterCmd)
-	{
-		cmdbuff[index] = 0x01;
-		index ++;
-		switch(motorCmd->cmdtype)
-		{
-			case 1 :
-				cmdbuff[index] = motorCmd->cmdtype;
-				index ++;
-				cmdbuff[index] = motorCmd->motorV;
-				index ++;
-				break;
-			default :
-				cmdbuff[index] = motorCmd->cmdtype;
-				index ++;
-				run_err("unsupported motor cmd type!!!\n");
-		}
-	}
-	else
-	{
-		cmdbuff[index] = 0x00;
-		index ++;
-	}
-	if(servoCmd->bservoCmd)
-	{
-		cmdbuff[index] = 0x01;
-		index ++;
-		switch(servoCmd->cmdtype)
-		{
-			case 1 :
-				cmdbuff[index] = servoCmd->cmdtype;
-				index ++;
-				memcpy(cmdbuff + index, &(servoCmd->servoA), 2);
-				index += 2;
-				memcpy(cmdbuff + index, &(servoCmd->servoV), 2);
-				index += 2;
-				break;
-			default :
-				cmdbuff[index] = servoCmd->cmdtype;
-				index ++;
-				run_err("unsupported servo cmd type!!!\n");
-		}
-	}
-	else
-	{
-		cmdbuff[index] = 0x00;
-		index ++;
-	}
-	if(lgtCmd->blightCmd)
-	{
-		cmdbuff[index] = 0x01;
-		index ++;
-		switch(lgtCmd->light)
-		{
-			case ximie :
-				cmdbuff[index] = 0;
-				index ++;
-				break;
-			case changliang :
-				cmdbuff[index] = 1;
-				index ++;
-				break;
-			default :
-				cmdbuff[index] = (char)lgtCmd->light;
-				index ++;
-				run_err("unsupported light cmd type!!!\n");
-		}
-	}
-	else
-	{
-		cmdbuff[index] = 0x00;
-		index ++;
-	}
-	
-	if(hornCmd->bhornCmd)
-	{
-		cmdbuff[index] = 0x01;
-		index ++;
-		switch(hornCmd->horn)
-		{
-			case quite:
-				cmdbuff[index] = 0;
-				index ++;
-				break;
-			case chang :
-				cmdbuff[index] = 1;
-				index ++;
-				break;
-			case duan :
-				cmdbuff[index] = 2;
-				index ++;
-				break;
-			case dduan :
-				cmdbuff[index] = 3;
-				index ++;
-				break;
-			default :
-				cmdbuff[index] = (char)hornCmd->horn;
-				index ++;
-				run_err("unsupported light cmd type!!!\n");
-		}
-	}
-	else
-	{
-		cmdbuff[index] = 0x00;
-		index ++;
-	}	
-	cmdbuff[index] = 0x80;
-	cmdbuff[lenpos] = index - lenpos -1;
-	cmdInfo->dataLength = index + 1;
-	ret = Com_SendData(comInst, cmdbuff, cmdInfo->dataLength);
-	if(ret != index)
-	{
-		run_err("com send cmd err!!!\n");
-	}
-	function_out();
-	return ret;
-}
+
 int main(void)
 {
 	int ret = 0;
@@ -246,6 +115,7 @@ int main(void)
 	VIDEO_BUFF vBuff;
 	FILE * file;
 	COMMAND_INFO cmdInfo;
+	char picBuff[picWd * picHt];
 	
 	function_in();
 	file = fopen("/mnt/sdcard/test.yuv","wb+");
@@ -259,7 +129,8 @@ int main(void)
 		run_err("dev init failed,ret = %d\n",ret);
 	}
 
-	
+	//comGetInit(comInst);
+	#if 0
 	memset(&cmdInfo, 0, sizeof(cmdInfo));
 	cmdInfo.motorCmd.bMoterCmd = 1;
 	cmdInfo.motorCmd.cmdtype = 1;
@@ -269,7 +140,9 @@ int main(void)
 	cmdInfo.servoCmd.servoA = 200;
 	cmdInfo.servoCmd.servoV = 512;
 	
-	getCmd(&cmdInfo);
+	getCmd(comInst, &cmdInfo);
+#endif
+#if 0
 
 	Video_StartCapture(videoInst);
 	fd = Video_GetFd(videoInst);
@@ -292,14 +165,24 @@ int main(void)
 		if(ret > 0)
 		{
 			Video_GetFrame(videoInst, &vBuff);
-		}	
-		fwrite(vBuff.start,1,vBuff.length,file);
-		framenum ++;
-		if(framenum == FRAMENUM)
-		{
-			goto exit;
+			picFmtTrans(picWd, picHt, vBuff.start, picBuff);
+			//fwrite(vBuff.start,1,vBuff.length,file);
+			fwrite(picBuff, 1, picSize, file);
+			framenum ++;
+			if(framenum == FRAMENUM)
+			{
+				goto exit;
+			}
 		}
 	}
+#else
+	while(1)
+	{
+		run_err("test!!!\n");
+		sleep(2);
+	}
+
+#endif
 
 exit:
 	
@@ -312,3 +195,4 @@ exit:
 	function_out();
 	return ret;
 }	
+

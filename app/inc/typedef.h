@@ -1,6 +1,9 @@
 #ifndef TYPEDEF_H
 #define TYPEDEF_H
 
+#define picWd 640
+#define picHt 480
+#define picSize picWd * picHt
 typedef struct MOTOR_CMD_INFO
 {
 	char bMoterCmd;

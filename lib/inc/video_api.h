@@ -93,6 +93,7 @@ void * Com_Init();
 int Com_SetConfig(void * Inst, PCOM_INFO comInfo);
 int Com_SendData(void *Inst, void *buff, int dataNum);
 int Com_RecieveData(void *Inst, void *buff, int dataNum );
+int Com_GetFd(void * Inst);
 int Com_Release(void *Inst);
 	
 
