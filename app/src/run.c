@@ -39,7 +39,7 @@ int devinit()
 	memset(&comInfo, 0, sizeof(comInfo));
 	memset(&videoParam, 0, sizeof(videoParam));
 	
-#if COMTEST
+#ifndef VIMICRO
 	comInst = Com_Init();
 	comInfo.baundRate = BR115200;
 	comInfo.dataNum = DN8;
@@ -50,8 +50,7 @@ int devinit()
 	{
 		run_err("com set failed,ret = %d\n",ret);
 	}
-#endif	
-#if VIDEOTEST
+
 	videoInst = Video_Init();
 	Video_Show_CAP(videoInst);
 	Video_show_FMTDESC(videoInst);
@@ -129,20 +128,8 @@ int main(void)
 		run_err("dev init failed,ret = %d\n",ret);
 	}
 
-	//comGetInit(comInst);
-	#if 0
-	memset(&cmdInfo, 0, sizeof(cmdInfo));
-	cmdInfo.motorCmd.bMoterCmd = 1;
-	cmdInfo.motorCmd.cmdtype = 1;
-	cmdInfo.motorCmd.motorV =100;
-	cmdInfo.servoCmd.bservoCmd = 1;
-	cmdInfo.servoCmd.cmdtype = 1;
-	cmdInfo.servoCmd.servoA = 200;
-	cmdInfo.servoCmd.servoV = 512;
-	
-	getCmd(comInst, &cmdInfo);
-#endif
-#if 0
+	comGetInit(comInst);
+#ifndef VIMICRO
 
 	Video_StartCapture(videoInst);
 	fd = Video_GetFd(videoInst);

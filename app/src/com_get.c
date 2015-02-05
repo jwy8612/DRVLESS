@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+//#define motortest 
 void *comGetThread(void *arg);
 
 char comreadtest[10];
@@ -48,16 +49,19 @@ void *comGetThread(void *arg)
 	fd_set fds;
 	struct timeval time;
 	int ret = 0;
+	COMMAND_INFO cmdInfo;
 
 	
 	function_in();
-	//fd = Com_GetFd(comInst);
+#ifndef VIMICRO
+	fd = Com_GetFd(comInst);
+#endif
 	while(1)
 	{
 		run_err("thread test time = %d\n",sec);
 		sec ++;
 		sleep(1);
-		#if 0
+#ifndef VIMICRO
 		FD_ZERO(&fds);  
 		FD_SET(fd, &fds); 
 		time.tv_sec = 10;
@@ -78,7 +82,31 @@ void *comGetThread(void *arg)
 			ret = Com_RecieveData(comInst, comreadtest, 10);
 			Com_SendData(comInst, comreadtest, 10);
 		}
-		#endif
+#endif
+#ifdef motortest
+	memset(&cmdInfo, 0, sizeof(cmdInfo));
+	cmdInfo.motorCmd.bMoterCmd = 1;
+	cmdInfo.motorCmd.cmdtype = 1;
+	cmdInfo.motorCmd.motorV =100;
+	cmdInfo.servoCmd.bservoCmd = 1;
+	cmdInfo.servoCmd.cmdtype = 1;
+	cmdInfo.servoCmd.servoA = 200;
+	cmdInfo.servoCmd.servoV = 512;
+	
+	getCmd(comInst, &cmdInfo);
+
+	sleep(3);
+	memset(&cmdInfo, 0, sizeof(cmdInfo));
+	cmdInfo.motorCmd.bMoterCmd = 1;
+	cmdInfo.motorCmd.cmdtype = 1;
+	cmdInfo.motorCmd.motorV =100;
+	cmdInfo.servoCmd.bservoCmd = 1;
+	cmdInfo.servoCmd.cmdtype = 1;
+	cmdInfo.servoCmd.servoA = 700;
+	cmdInfo.servoCmd.servoV = 512;
+	
+	getCmd(comInst, &cmdInfo);
+#endif
 	}
 	
 	function_out();

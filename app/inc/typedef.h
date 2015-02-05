@@ -1,6 +1,7 @@
 #ifndef TYPEDEF_H
 #define TYPEDEF_H
 
+#define VIMICRO
 #define picWd 640
 #define picHt 480
 #define picSize picWd * picHt
