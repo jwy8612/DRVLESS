@@ -58,9 +58,9 @@ void *comGetThread(void *arg)
 #endif
 	while(1)
 	{
-		run_err("thread test time = %d\n",sec);
-		sec ++;
-		sleep(1);
+		//run_err("thread test time = %d\n",sec);
+		//sec ++;
+		//sleep(1);
 #ifndef VIMICRO
 		FD_ZERO(&fds);  
 		FD_SET(fd, &fds); 

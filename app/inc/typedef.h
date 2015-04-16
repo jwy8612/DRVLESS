@@ -5,6 +5,13 @@
 #define picWd 640
 #define picHt 480
 #define picSize picWd * picHt
+#define gradThrea 100 
+
+#define directX 0
+#define directY 1
+
+#define PI 3.14
+
 typedef struct MOTOR_CMD_INFO
 {
 	char bMoterCmd;

@@ -87,19 +87,17 @@ int devRelease()
 	if(ret < 0)
 	{
 		run_err("com release failed,ret = %d\n",ret);
-		goto exit1;
+		
 	}
 	ret = Video_Release(videoInst);
 	if(ret < 0)
 	{
 		run_err("video release failed,ret = %d\n",ret);
-		goto exit2;
+		
 	}
 
 	function_out();
 	return ret;
-	exit1: return -1;
-	exit2: return -2;
 
 }
 
@@ -112,16 +110,34 @@ int main(void)
 	fd_set fds;
 	struct timeval time;
 	VIDEO_BUFF vBuff;
-	FILE * file;
+	FILE *file;
+	FILE *filein, *fileout;
 	COMMAND_INFO cmdInfo;
-	char picBuff[picWd * picHt];
+	char picBuff[picSize];
+	int pTh,pR;
 	
 	function_in();
+	ret = picSize;
+	run_err("picsize = %d\n",ret);
+	
 	file = fopen("/mnt/sdcard/test.yuv","wb+");
 	if(file < 0)
 	{
-		video_err("open test.yuv failed!!!\n");
+		run_err("open test.yuv failed!!!\n");
 	}
+#ifdef VIMICRO
+	filein = fopen("/mnt/sdcard/400.yuv","rb+");
+	if(file < 0)
+	{
+		run_err("open 400.yuv failed!!!\n");
+	}
+	
+	fileout = fopen("/mnt/sdcard/out.yuv","wb+");
+	if(file < 0)
+	{
+		run_err("open out.yuv failed!!!\n");
+	}
+#endif	
 	ret = devinit();
 	if(ret < 0)
 	{
@@ -163,12 +179,18 @@ int main(void)
 		}
 	}
 #else
+	fread(picBuff, 1, picSize, filein);
+	picFilter(picWd, picHt, picBuff, directX);
+	picGrad(picWd, picHt, picBuff);
+	Hough(picBuff, picWd, picHt, &pR, &pTh, 0);
+	fwrite(picBuff, 1, picSize, fileout);
+#if 0
 	while(1)
 	{
 		run_err("test!!!\n");
 		sleep(2);
 	}
-
+#endif
 #endif
 
 exit:
@@ -179,6 +201,9 @@ exit:
 		run_err("dev release failed,ret = %d\n",ret);
 	}
 	fclose(file);
+	fclose(filein);
+	fclose(fileout);
+
 	function_out();
 	return ret;
 }	

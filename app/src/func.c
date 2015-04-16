@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "typedef.h"
+#include <math.h>
 
 int getCmd(void *Inst, PCOMMAND_INFO cmdInfo)
 {
@@ -183,14 +184,130 @@ int picGrad(int wd, int ht, char *picbuff)
 			gx = picbuff[i * wd + j] - picbuff[(i +1)* wd + j +1];
 			gy = picbuff[i * wd + j +1] - picbuff[(i +1)* wd + j];
 			picbuff[i * wd + j] = abs(gx) + abs(gy);
+			picbuff[i * wd + j] = picbuff[i * wd + j] > gradThrea ? 255 : 0;
 		}
 		picbuff[i * wd + wd] = picbuff[i * wd + wd - 1];
+		picbuff[i * wd + j] = picbuff[i * wd + j] > gradThrea ? 255 : 0;
 	}
 	for(j = 0; j < wd; j ++)
 	{
 		picbuff[(ht - 1) * wd + j] = picbuff[(ht - 2) * wd + j];
+		picbuff[i * wd + j] = picbuff[i * wd + j] > gradThrea ? 255 : 0;
 	}
 
 	function_out();
 	return ret;
 }
+
+int picFilter(int wd, int ht, char *picbuff, char flag)
+{
+	int ret = 0;
+	int i, j;
+	char w,s;
+	char buff[picSize];
+	function_in();
+	w = 1;
+	s = 2;
+	if(flag == directX)
+	{
+		for(j = 0; j < ht; j ++)
+		{
+			buff[j * wd] = (picbuff[j * wd] * s + picbuff[j * wd + 1] * w) / (w + s);
+		}
+		for(i = 1; i < wd - 1; i ++)
+		{
+			for(j = 0; j < ht; j ++)
+			{
+				buff[j * wd + i] = (picbuff[j * wd + i] * s + picbuff[j * wd + i - 1] * w + picbuff[j * wd + i + 1] * w) / (w + w + s);
+			}
+
+		}
+		for(j = 0; j < ht; j ++)
+		{
+			buff[(j + 1) * wd - 1] = (picbuff[(j + 1) * wd - 1] * s + picbuff[(j + 1) * wd - 2] * w) / (w + s);
+		}
+		memcpy(picbuff,buff,picSize);
+	}
+	if(flag == directY)
+	{
+
+	}
+	
+
+}
+void Hough(char *srcbuff,int wd,int ht, int *pR, int *pTh, int iThreshold)
+{
+	int iRMax = (int)sqrt(wd * wd + ht * ht) + 1;
+	int iThMax = 361;
+	int iTh, iR;
+	int iMax = -1;
+    	int iThMaxIndex = -1;
+    	int iRMaxIndex = -1;
+    	int pArray[iRMax * iThMax];
+    	float fRate = (float)(PI/180);
+	int i,j;	
+	 int iCount ;
+
+	memset(pArray, 0, sizeof(int) * iRMax * iThMax);
+
+	for (i = 0; i < ht; i++)
+	{
+		for (j = 0; j < wd; j++)
+		{
+			 if(srcbuff[i * wd + j] == 255)
+			{
+				for(iTh = 0; iTh < iThMax; iTh ++)
+	                	{
+					iR = (int)(j * cos(iTh * fRate) + i * sin(iTh * fRate));
+				//	run_err("IR = %d\n",iR);
+					if(iR > 0)
+					{
+	                       		 pArray[iR * iThMax + iTh]++;
+						//		 	
+
+					}
+	                	}
+	            	}
+
+	        } 
+			 run_err("mask\n");
+
+	} 
+	 run_err("mask\n");
+	for(iR = 0; iR < iRMax; iR++)
+	{
+		for(iTh = 0; iTh < iThMax; iTh++)
+	        {
+	            	iCount = pArray[iR * iThMax + iTh];
+			if(iCount > iMax)
+			{
+		                iMax = iCount;
+		                iRMaxIndex = iR;
+		                iThMaxIndex = iTh;
+	          	  }
+	        }
+	}
+	run_err("iRMaxIndex = %d\n",iRMaxIndex);
+	run_err("iThMaxIndex = %d\n",iThMaxIndex);
+	run_err(" iMax = %d\n", iMax);
+	if(iMax >= iThreshold)
+	{
+	        *pR = iRMaxIndex;
+	        *pTh = iThMaxIndex;
+	}
+
+	#if 0	//test
+	for (i = 0; i < ht; i++)
+	{
+		for (j = 0; j < wd; j++)
+		{
+			 if(srcbuff[i * wd + j]  == 255)
+			{
+				if((int)(j * cos( iThMaxIndex * fRate) + i * sin( iThMaxIndex * fRate)) != iRMaxIndex)
+					srcbuff[i * wd + j]  = 0;
+			}
+		}
+	}
+	#endif
+	    return;
+} 
