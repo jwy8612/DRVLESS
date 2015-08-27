@@ -24,10 +24,10 @@
 //#define motortest 
 void *comGetThread(void *arg);
 
-char comreadtest[10];
-int comGetInit(void *Inst)
+u8 comreadtest[10];
+i32 comGetInit(void *Inst)
 {
-	int ret = 0;
+	i32 ret = 0;
 	pthread_t tid;
 	void *comInst = Inst;
 	
@@ -44,11 +44,11 @@ int comGetInit(void *Inst)
 void *comGetThread(void *arg)
 {
 	void *comInst = arg;
-	int sec = 0;
-	int fd;
+	i32 sec = 0;
+	i32 fd;
 	fd_set fds;
 	struct timeval time;
-	int ret = 0;
+	i32 ret = 0;
 	COMMAND_INFO cmdInfo;
 
 	

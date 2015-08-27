@@ -1,6 +1,6 @@
 #ifndef COMGET_H
 #define COMGET_H
 
-int comGetInit(void *Inst);
+i32 comGetInit(void *Inst);
 
 #endif

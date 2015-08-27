@@ -23,7 +23,7 @@
 void *Video_Init()
 {
 	PVIDEO_INFO videoInfo = NULL;
-	int fd;
+	i32 fd;
 
 	function_in();
 	videoInfo = (PVIDEO_INFO)malloc(sizeof(VIDEO_INFO));
@@ -47,9 +47,9 @@ exit:
 
 }
 
-int Video_Show_CAP(void * vInst)
+i32 Video_Show_CAP(void * vInst)
 {
-	int ret = 0;
+	i32 ret = 0;
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
 	struct v4l2_capability cap;
 
@@ -69,9 +69,9 @@ int Video_Show_CAP(void * vInst)
 
 }
 
-int Video_Show_STD(void * vInst)
+i32 Video_Show_STD(void * vInst)
 {
-	int ret = 0;
+	i32 ret = 0;
 	v4l2_std_id std = 0;
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
 	
@@ -99,10 +99,10 @@ int Video_Show_STD(void * vInst)
 	return ret;
 }
 
-int Video_show_FMTDESC(void * vInst)
+i32 Video_show_FMTDESC(void * vInst)
 {
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
-	int ret = 0;
+	i32 ret = 0;
 	struct v4l2_format fmt;
 	struct v4l2_fmtdesc  fmtdesc;
 	
@@ -122,9 +122,9 @@ int Video_show_FMTDESC(void * vInst)
  	return ret;
 }
 
-int Video_SetConfig(void * vInst, VIDEO_PARAM *videoParam)
+i32 Video_SetConfig(void * vInst, VIDEO_PARAM *videoParam)
 {
-	int ret = 0;
+	i32 ret = 0;
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
 	PVIDEO_PARAM vParam = &(videoInfo->videoParam);
 	struct v4l2_crop cropcap;
@@ -189,12 +189,12 @@ exit:
 	return ret;
 }
 
-int Video_Showt_CurrentFMT(void * vInst)
+i32 Video_Showt_CurrentFMT(void * vInst)
 {	
 	struct v4l2_format fmt;
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
 	struct v4l2_crop cropcap; 
-	int ret = 0;
+	i32 ret = 0;
 
 	function_in();
 	memset(&cropcap, 0, sizeof(cropcap));
@@ -218,10 +218,10 @@ int Video_Showt_CurrentFMT(void * vInst)
 }
 
 
-int Video_BuffersInit(void * vInst)
+i32 Video_BuffersInit(void * vInst)
 {
-	int ret = 0;
-	int i;
+	i32 ret = 0;
+	i32 i;
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
 	struct v4l2_buffer    buf;
 	VIDEO_BUFF *buffers = videoInfo->videoBuffer;
@@ -271,9 +271,9 @@ exit:
 }
 
 
-int Video_StartCapture(void * vInst)
+i32 Video_StartCapture(void * vInst)
 {
-	int ret = 0;
+	i32 ret = 0;
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
 	enum v4l2_buf_type type;
 	
@@ -288,9 +288,9 @@ int Video_StartCapture(void * vInst)
 	function_out();
 	return ret;
 }
-int Video_GetFd(void * vInst)
+i32 Video_GetFd(void * vInst)
 {
-	int ret = 0;
+	i32 ret = 0;
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
 	
 	function_in();
@@ -301,9 +301,9 @@ int Video_GetFd(void * vInst)
 
 }
 
-int Video_GetFrame(void * vInst, VIDEO_BUFF *vBuff)
+i32 Video_GetFrame(void * vInst, VIDEO_BUFF *vBuff)
 {
-	int ret = 0;
+	i32 ret = 0;
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
 	struct v4l2_buffer buf;
 	
@@ -335,9 +335,9 @@ int Video_GetFrame(void * vInst, VIDEO_BUFF *vBuff)
 	function_out();
 	return ret;
 }
-int Video_Release(void * vInst)
+i32 Video_Release(void * vInst)
 {
-	int ret = 0;
+	i32 ret = 0;
 	PVIDEO_INFO videoInfo = (PVIDEO_INFO)vInst;
 
 	function_in();
@@ -366,8 +366,8 @@ int Video_Release(void * vInst)
 
 void * Com_Init()
 {
-	int fd;
-	int ret = 0;
+	i32 fd;
+	i32 ret = 0;
 	PCOM_INST comInst = NULL;
 	
 	function_in();
@@ -398,9 +398,9 @@ void * Com_Init()
 
 }
 
-int Com_SetConfig(void * Inst, PCOM_INFO comInfo)
+i32 Com_SetConfig(void * Inst, PCOM_INFO comInfo)
 {
-	int ret = 0;
+	i32 ret = 0;
 	PCOM_INST comInst = (PCOM_INST)Inst;
 	PCOM_INFO comParam = &(comInst->comInfo);
 	termios termIos;
@@ -518,9 +518,9 @@ int Com_SetConfig(void * Inst, PCOM_INFO comInfo)
 	return ret;
 }
 	
-int Com_SendData(void *Inst, void *buff, int dataNum)
+i32 Com_SendData(void *Inst, void *buff, i32 dataNum)
 {
-	int ret = 0;
+	i32 ret = 0;
 	PCOM_INST comInst = (PCOM_INST)Inst;
 	
 	function_in();
@@ -534,9 +534,9 @@ int Com_SendData(void *Inst, void *buff, int dataNum)
 	return ret;
 }
 
-int Com_RecieveData(void *Inst, void *buff, int dataNum )
+i32 Com_RecieveData(void *Inst, void *buff, i32 dataNum )
 {
-	int ret = 0;
+	i32 ret = 0;
 	PCOM_INST comInst = (PCOM_INST)Inst;
 	
 	function_in();
@@ -550,9 +550,9 @@ int Com_RecieveData(void *Inst, void *buff, int dataNum )
 	return ret;
 }
 
-int Com_GetFd(void * Inst)
+i32 Com_GetFd(void * Inst)
 {
-	int ret = 0;
+	i32 ret = 0;
 	PCOM_INST comInst = (PCOM_INST)Inst;
 	
 	function_in();
@@ -563,9 +563,9 @@ int Com_GetFd(void * Inst)
 
 }
 
-int Com_Release(void *Inst)
+i32 Com_Release(void *Inst)
 {
-	int ret = 0;
+	i32 ret = 0;
 	PCOM_INST comInst = (PCOM_INST)Inst;
 
 	function_in();

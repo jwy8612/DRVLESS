@@ -5,17 +5,22 @@
 #include <linux/videodev2.h>
 typedef struct termios termios;
 
+typedef  unsigned char u8;
+typedef  signed char i8;
+typedef  unsigned int u32;
+typedef  signed int i32;
+
 typedef struct VIDEO_INFO
 {
-	int fd;
-	int buffIndex;
+	i32 fd;
+	i32 buffIndex;
 	VIDEO_BUFF  videoBuffer[BUFFNUM];
 	VIDEO_PARAM videoParam;
 }VIDEO_INFO, *PVIDEO_INFO;
 
 typedef struct COM_INST
 {
-	int fd;
+	i32 fd;
 	COM_INFO comInfo;
 }COM_INST, *PCOM_INST;
 

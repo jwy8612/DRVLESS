@@ -2,14 +2,13 @@
 #define VIDEOAPI_H
 
 #define BUFFNUM 4
-
 typedef struct VIDEO_CROP 
 {
-	char bCROP;
-	int top;
-	int left;
-	int width;
-	int height;
+	unsigned char bCROP;
+	signed int top;
+	signed int left;
+	signed int width;
+	signed int height;
 } VIDEO_CROP;
 
 typedef enum PIX_FMT
@@ -21,8 +20,8 @@ typedef enum PIX_FMT
 typedef struct VIDEO_FMT 
 {
 	PIX_FMT pixFmt;
-	int width;
-	int height;
+	signed int width;
+	signed int height;
 } VIDEO_FMT;
 typedef struct VIDEO_PARAM 
 {
@@ -78,23 +77,23 @@ typedef struct COM_INFO
 
 
 void *Video_Init();
-int Video_Show_CAP(void * vInst);
-int Video_Show_STD(void * vInst);
-int Video_show_FMTDESC(void * vInst);
-int Video_SetConfig(void * vInst, VIDEO_PARAM *videoParam);
-int Video_Showt_CurrentFMT(void * vInst);
-int Video_BuffersInit(void * vInst);
-int Video_StartCapture(void * vInst);
-int Video_GetFd(void * vInst);
-int Video_GetFrame(void * vInst, VIDEO_BUFF *vBuff);
-int Video_Release(void * vInst);
+signed int Video_Show_CAP(void * vInst);
+signed int Video_Show_STD(void * vInst);
+signed int Video_show_FMTDESC(void * vInst);
+signed int Video_SetConfig(void * vInst, VIDEO_PARAM *videoParam);
+signed int Video_Showt_CurrentFMT(void * vInst);
+signed int Video_BuffersInit(void * vInst);
+signed int Video_StartCapture(void * vInst);
+signed int Video_GetFd(void * vInst);
+signed int Video_GetFrame(void * vInst, VIDEO_BUFF *vBuff);
+signed int Video_Release(void * vInst);
 
 void * Com_Init();
-int Com_SetConfig(void * Inst, PCOM_INFO comInfo);
-int Com_SendData(void *Inst, void *buff, int dataNum);
-int Com_RecieveData(void *Inst, void *buff, int dataNum );
-int Com_GetFd(void * Inst);
-int Com_Release(void *Inst);
+signed int Com_SetConfig(void * Inst, PCOM_INFO comInfo);
+signed int Com_SendData(void *Inst, void *buff, signed int dataNum);
+signed int Com_RecieveData(void *Inst, void *buff, signed int dataNum );
+signed int Com_GetFd(void * Inst);
+signed int Com_Release(void *Inst);
 	
 
 

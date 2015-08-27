@@ -27,11 +27,11 @@ void * videoInst = NULL;
 #define	VIDEOTEST 0 
 #define	COMTEST 0
 
-char combuff[20]={1,2,3,4,5,6,7,8,9,0,9,8,7,6,5,4,3,2,1,0};
+u8 combuff[20]={1,2,3,4,5,6,7,8,9,0,9,8,7,6,5,4,3,2,1,0};
 
-int devinit()
+i32 devinit()
 {
-	int ret = 0;
+	i32 ret = 0;
 	COM_INFO comInfo;
 	VIDEO_PARAM videoParam;
 	
@@ -78,9 +78,9 @@ int devinit()
 	
 }
 
-int devRelease()
+i32 devRelease()
 {
-	int ret = 0;
+	i32 ret = 0;
 
 	function_in();
 	ret = Com_Release(comInst);
@@ -102,23 +102,28 @@ int devRelease()
 }
 
 
-int main(void)
+i32 main(void)
 {
-	int ret = 0;
-	int framenum = 0;
-	int fd;
+	i32 ret = 0;
+	i32 framenum = 0;
+	i32 fd;
 	fd_set fds;
 	struct timeval time;
 	VIDEO_BUFF vBuff;
 	FILE *file;
 	FILE *filein, *fileout;
 	COMMAND_INFO cmdInfo;
-	char picBuff[picSize];
-	int pTh,pR;
+	u8 srcBuff[srcSize];
+	u8 dstBuff[dstSize];
+	u8 UBuff[dstSize];
+	u8 VBuff[dstSize];
+	u8 processBuff[dstSize];
+	i32 pTh,pR;
+	i32 direc, pos;
+	u8 threshold;
+	
 	
 	function_in();
-	ret = picSize;
-	run_err("picsize = %d\n",ret);
 	
 	file = fopen("/mnt/sdcard/test.yuv","wb+");
 	if(file < 0)
@@ -126,7 +131,7 @@ int main(void)
 		run_err("open test.yuv failed!!!\n");
 	}
 #ifdef VIMICRO
-	filein = fopen("/mnt/sdcard/400.yuv","rb+");
+	filein = fopen("/mnt/sdcard/bishe.yuv","rb+");
 	if(file < 0)
 	{
 		run_err("open 400.yuv failed!!!\n");
@@ -144,7 +149,7 @@ int main(void)
 		run_err("dev init failed,ret = %d\n",ret);
 	}
 
-	comGetInit(comInst);
+//	comGetInit(comInst);
 #ifndef VIMICRO
 
 	Video_StartCapture(videoInst);
@@ -168,9 +173,9 @@ int main(void)
 		if(ret > 0)
 		{
 			Video_GetFrame(videoInst, &vBuff);
-			picFmtTrans(picWd, picHt, vBuff.start, picBuff);
+			//picFmtTrans(picWd, picHt, vBuff.start, srcBuff);
 			//fwrite(vBuff.start,1,vBuff.length,file);
-			fwrite(picBuff, 1, picSize, file);
+			fwrite(srcBuff, 1, srcSize, file);
 			framenum ++;
 			if(framenum == FRAMENUM)
 			{
@@ -179,11 +184,49 @@ int main(void)
 		}
 	}
 #else
-	fread(picBuff, 1, picSize, filein);
-	picFilter(picWd, picHt, picBuff, directX);
-	picGrad(picWd, picHt, picBuff);
-	Hough(picBuff, picWd, picHt, &pR, &pTh, 0);
-	fwrite(picBuff, 1, picSize, fileout);
+
+	while(framenum < 200)
+	{
+	
+	fread(srcBuff, 1, srcSize, filein);
+#if 1
+	picFmtTrans(picWd, picHt, srcBuff, dstBuff, YUV_Y);
+	picFilterAverage(dstWd, dstHt, dstBuff);
+	threshold = picGetThreshold(dstBuff,dstWd,dstHt,100,50);
+	picBinary(dstBuff, dstWd, dstHt, threshold);
+	//picGrad(dstWd, dstHt, dstBuff, 20);
+	fwrite(dstBuff, 1,dstSize, fileout);
+
+#endif
+#if 0
+	picFmtTrans(picWd, picHt, srcBuff, UBuff, YUV_U);
+	//picFilterMiddle(dstWd, dstHt, UBuff);
+	//picGrad(dstWd, dstHt, UBuff, 10);
+	fwrite(UBuff, 1,dstSize, fileout);
+
+#endif
+#if 0
+	picFmtTrans(picWd, picHt, srcBuff, VBuff, YUV_V);
+	//picFilterMiddle(dstWd, dstHt, UBuff);
+	//picGrad(dstWd, dstHt, UBuff, 10);
+	fwrite(VBuff, 1,dstSize, fileout);
+#endif
+//	
+//	picFmtTrans(picWd, picHt, srcBuff, VBuff, YUV_V);
+	//picDif(picWd, picHt, UBuff, VBuff, processBuff);
+	//picFilter(dstWd, dstHt, dstBuff, directX);
+	//picFilter(dstWd, dstHt, srcBuff, directY);
+	//picGrad(dstWd, dstHt, processBuff, 20);
+	//Hough(srcBuff, picWd, picHt, &pR, &pTh, 0);
+//	
+	//picFilter(picWd, picHt, srcBuff, directY);
+	//picGrad(picWd, picHt, srcBuff, 100);
+//	fwrite(UBuff, 1,dstSize, fileout);
+//	fwrite(VBuff, 1,dstSize, fileout);
+//	fwrite(dstBuff, 1,dstSize, fileout);
+//	picGetLine(srcBuff, picWd, picHt, &direc, &pos);
+	framenum ++;
+	}
 #if 0
 	while(1)
 	{
