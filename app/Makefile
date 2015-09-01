@@ -9,8 +9,8 @@ STRIP := $(CROSS_COMPILE)strip
 
 
 CFLAGS += -I$(GNUHF_LIBC_INC) -I./inc/ -I../lib/inc
-OBJS += ./src/run.o ./src/func.o ./src/com_get.o
-LDFLAGS += -L$(WORK_LIB_PATH) -lmpi -lpthread -lm
+OBJS += ./src/run.o 
+LDFLAGS += -L$(WORK_LIB_PATH) -lvgt -lvpe -lvpo -losd -lpthread -lm
 
 FORCE_STATIC := --static
 #FORCE_STATIC := 

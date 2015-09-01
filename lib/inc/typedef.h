@@ -1,8 +1,12 @@
 #ifndef APPTYPEDEF_H
 #define APPTYPEDEF_H
 #include <termios.h>
-#include "video_api.h"
+#include "video_get_api.h"
 #include <linux/videodev2.h>
+#include "order_send_api.h"
+
+
+#define PI 3.14
 typedef struct termios termios;
 
 typedef  unsigned char u8;

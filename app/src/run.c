@@ -11,14 +11,14 @@
 ---------------------------------------------------------------------------------------------*/
 #include "debug.h"
 #include <stdio.h>
-#include "video_api.h"
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include "typedef.h"
-#include "func.h"
-#include "com_get.h"
-
+#include "video_get_api.h"
+#include "video_preprocess_api.h"
+#include "video_process_api.h"
+#include "order_send_api.h"
 #define FRAMENUM 10
 
 void * comInst = NULL;
