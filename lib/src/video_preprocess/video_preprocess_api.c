@@ -385,3 +385,30 @@ void picBinary(u8 *picbuff, i32 wd, i32 ht, u8 Threshold)
 	}
 	function_out();
 }
+void picLinePre(u8 *picbuff, i32 wd, i32 ht)
+{
+	i32 i,j;
+	i32 start=0,mid=0;
+	function_in();
+	for(j=0; j<ht; j++)
+	{
+		for(i=0; i<wd; i++)
+		{
+			if((picbuff[j*wd + i]==0)&&(start))
+			{
+				mid=(start+i)/2;
+				picbuff[j*wd + mid]=255;
+				start=0;
+			}
+
+			if(picbuff[j*wd + i]==255)
+			{
+				if(start==0)
+					start=i;
+				picbuff[j*wd + i]=0;
+			}
+		}
+		start=0;
+	}
+	function_out();
+}

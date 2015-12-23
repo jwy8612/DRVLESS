@@ -185,7 +185,7 @@ i32 main(void)
 	}
 #else
 
-	while(framenum < 200)
+	while(framenum < 350)
 	{
 	
 	fread(srcBuff, 1, srcSize, filein);
@@ -195,8 +195,11 @@ i32 main(void)
 	threshold = picGetThreshold(dstBuff,dstWd,dstHt,100,50);
 	picBinary(dstBuff, dstWd, dstHt, threshold);
 	//picGrad(dstWd, dstHt, dstBuff, 20);
+	//fwrite(dstBuff, 1,dstSize, file);
+	picLinePre(dstBuff,dstWd,dstHt);
+	
+	pic_Hough(dstBuff,dstWd,dstWd,&pR,&pTh);
 	fwrite(dstBuff, 1,dstSize, fileout);
-
 #endif
 #if 0
 	picFmtTrans(picWd, picHt, srcBuff, UBuff, YUV_U);

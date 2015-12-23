@@ -1,8 +1,6 @@
 #ifndef VIDEO_REPROCESS_API_H
 #define VIDEO_REPROCESS_API_H
 
-#define PI 3.14
-
 typedef enum
 {
 	YUV_Y = 0,
@@ -15,5 +13,7 @@ signed int picFilterAverage(i32 wd, i32 ht, u8 *picbuff);
 signed int picFilterMiddle(i32 wd, i32 ht, u8 *picbuff);
 signed int picGetThreshold(u8 *picbuff, i32 wd, i32 ht, i32 startLine, i32 startRow);
 void picBinary(u8 *picbuff, i32 wd, i32 ht, u8 Threshold);
+void picLinePre(u8 *picbuff, i32 wd, i32 ht);
+
 
 #endif
