@@ -50,8 +50,8 @@ typedef struct SERVO_CMD_INFO
 {
 	unsigned char bservoCmd;
 	unsigned char cmdtype;
-	unsigned short servoA;
-	unsigned short servoV;
+	signed char servoA;
+	signed char servoV;
 }SERVO_CMD_INFO, *PSERVO_CMD_INFO;
 
 typedef enum LIGHT_CMD

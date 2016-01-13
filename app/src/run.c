@@ -39,39 +39,44 @@ i32 devinit()
 	memset(&comInfo, 0, sizeof(comInfo));
 	memset(&videoParam, 0, sizeof(videoParam));
 	
-#ifndef VIMICRO
 	comInst = Com_Init();
-	comInfo.baundRate = BR115200;
-	comInfo.dataNum = DN8;
-	comInfo.parity = NOP;
-	comInfo.stop = S1;
-	ret = Com_SetConfig(comInst, &comInfo);
-	if(ret < 0)
+	if(comInst!=NULL)
 	{
-		run_err("com set failed,ret = %d\n",ret);
+		comInfo.baundRate = BR115200;
+		comInfo.dataNum = DN8;
+		comInfo.parity = NOP;
+		comInfo.stop = S1;
+		ret = Com_SetConfig(comInst, &comInfo);
+		if(ret < 0)
+		{
+			run_err("com set failed,ret = %d\n",ret);
+		}
 	}
 
 	videoInst = Video_Init();
-	Video_Show_CAP(videoInst);
-	Video_show_FMTDESC(videoInst);
 
-	videoParam.vCrop.bCROP = 0;
-	videoParam.vFmt.pixFmt = YUYV8bit;
-	videoParam.vFmt.width = picWd;
-	videoParam.vFmt.height = picHt;
-	
-	ret = Video_SetConfig(videoInst, &videoParam);
-	if(ret < 0)
+	if(videoInst!=NULL)
 	{
-		run_err("Video_SetConfig failed,ret = %d\n",ret);
+		Video_Show_CAP(videoInst);
+		Video_show_FMTDESC(videoInst);
+		
+		videoParam.vCrop.bCROP = 0;
+		videoParam.vFmt.pixFmt = YUYV8bit;
+		videoParam.vFmt.width = picWd;
+		videoParam.vFmt.height = picHt;
+		
+		ret = Video_SetConfig(videoInst, &videoParam);
+		if(ret < 0)
+		{
+			run_err("Video_SetConfig failed,ret = %d\n",ret);
+		}
+		Video_Showt_CurrentFMT(videoInst);
+		ret = Video_BuffersInit(videoInst);
+		if(ret < 0)
+		{
+			run_err("Video_Buffers Init failed,ret = %d\n",ret);
+		}
 	}
-	Video_Showt_CurrentFMT(videoInst);
-	ret = Video_BuffersInit(videoInst);
-	if(ret < 0)
-	{
-		run_err("Video_Buffers Init failed,ret = %d\n",ret);
-	}
-#endif
 	function_out();
 
 	return ret;
@@ -84,12 +89,14 @@ i32 devRelease()
 
 	function_in();
 	ret = Com_Release(comInst);
+	comInst= NULL;
 	if(ret < 0)
 	{
 		run_err("com release failed,ret = %d\n",ret);
 		
 	}
 	ret = Video_Release(videoInst);
+	videoInst=NULL;
 	if(ret < 0)
 	{
 		run_err("video release failed,ret = %d\n",ret);
@@ -101,8 +108,21 @@ i32 devRelease()
 
 }
 
+void carDrive(i32 pTh, i32 pR, PCOMMAND_INFO cmdInfo)
+{
+	function_in();
+	cmdInfo->motorCmd.bMoterCmd=1;
+	cmdInfo->motorCmd.cmdtype=1;
+	cmdInfo->motorCmd.motorV=50;
 
-i32 main(void)
+	cmdInfo->servoCmd.bservoCmd = 1;
+	cmdInfo->servoCmd.cmdtype = 1;
+	cmdInfo->servoCmd.servoA = 0;
+	cmdInfo->servoCmd.servoV = 0;
+		
+	function_out();
+}
+i32 main(i32 argc, u8 ** argv)
 {
 	i32 ret = 0;
 	i32 framenum = 0;
@@ -110,8 +130,9 @@ i32 main(void)
 	fd_set fds;
 	struct timeval time;
 	VIDEO_BUFF vBuff;
-	FILE *file;
-	FILE *filein, *fileout;
+	FILE *file=NULL;
+	FILE *filein = NULL;
+	FILE *fileout=NULL;
 	COMMAND_INFO cmdInfo;
 	u8 srcBuff[srcSize];
 	u8 dstBuff[dstSize];
@@ -121,123 +142,133 @@ i32 main(void)
 	i32 pTh,pR;
 	i32 direc, pos;
 	u8 threshold;
-	
-	
+	u8 testName[20];
+	i32 testValue;
+	i32 testValue1;
+		
 	function_in();
+	memset(&cmdInfo,0,sizeof(COMMAND_INFO));
 	
-	file = fopen("/mnt/sdcard/test.yuv","wb+");
-	if(file < 0)
-	{
-		run_err("open test.yuv failed!!!\n");
-	}
-#ifdef VIMICRO
-	filein = fopen("/mnt/sdcard/bishe.yuv","rb+");
-	if(file < 0)
-	{
-		run_err("open 400.yuv failed!!!\n");
-	}
-	
-	fileout = fopen("/mnt/sdcard/out.yuv","wb+");
-	if(file < 0)
-	{
-		run_err("open out.yuv failed!!!\n");
-	}
-#endif	
 	ret = devinit();
 	if(ret < 0)
 	{
 		run_err("dev init failed,ret = %d\n",ret);
 	}
 
-//	comGetInit(comInst);
-#ifndef VIMICRO
-
-	Video_StartCapture(videoInst);
-	fd = Video_GetFd(videoInst);
-	while(1)
+/*************功能测试*******************************/
+	if(argc > 1)
 	{
-		FD_ZERO(&fds);  
-		FD_SET(fd, &fds); 
-		time.tv_sec = 3;
-		time.tv_usec = 0;
+		strcpy(testName,argv[1]);
+		if(argc>2)
+			testValue = atoi(argv[2]);
+		if(argc > 3)
+			testValue1= atoi(argv[3]);
 
-		ret = select(fd + 1, &fds, NULL, NULL, &time);
-		if(ret < 0)
+		/*************电机测试********/
+		if(!strcmp(testName,"motortest"))
 		{
-			run_err("select failed!!!\n");
+			cmdInfo.motorCmd.bMoterCmd=1;
+			cmdInfo.motorCmd.cmdtype=1;
+			cmdInfo.motorCmd.motorV=testValue;
+
+			getCmd(comInst, &cmdInfo);
 		}
-		if(ret == 0)
+
+		/*************舵机测试********/
+		if(!strcmp(testName,"servotest"))
 		{
-			run_err("select time out!!!\n");
+			cmdInfo.servoCmd.bservoCmd = 1;
+			cmdInfo.servoCmd.cmdtype = 1;
+			cmdInfo.servoCmd.servoA = testValue;
+			cmdInfo.servoCmd.servoV = testValue1;
+		
+			getCmd(comInst, &cmdInfo);
 		}
-		if(ret > 0)
+		
+		/*************图像测试********/
+		if(!strcmp(testName,"videotest"))
 		{
-			Video_GetFrame(videoInst, &vBuff);
-			//picFmtTrans(picWd, picHt, vBuff.start, srcBuff);
-			//fwrite(vBuff.start,1,vBuff.length,file);
-			fwrite(srcBuff, 1, srcSize, file);
-			framenum ++;
-			if(framenum == FRAMENUM)
+			filein = fopen("/mnt/sdcard/bishe.yuv","rb+");
+			if(file < 0)
 			{
-				goto exit;
+				run_err("open 400.yuv failed!!!\n");
+			}
+			
+			fileout = fopen("/mnt/sdcard/out.yuv","wb+");
+			if(file < 0)
+			{
+				run_err("open out.yuv failed!!!\n");
+			}
+			while(framenum < 350)
+			{
+			
+				fread(srcBuff, 1, srcSize, filein);
+				picFmtTrans(picWd, picHt, srcBuff, dstBuff, YUV_Y);
+				picFilterAverage(dstWd, dstHt, dstBuff);
+				threshold = picGetThreshold(dstBuff,dstWd,dstHt,100,50);
+				picBinary(dstBuff, dstWd, dstHt, threshold);
+				picLinePre(dstBuff,dstWd,dstHt);
+				
+				pic_Hough(dstBuff,dstWd,dstWd,&pR,&pTh);
+				
+				fwrite(dstBuff, 1,dstSize, fileout);
+				framenum ++;
+			}
+			
+			if(filein)
+				fclose(filein);
+			if(fileout)
+				fclose(fileout);
+		}
+		
+	}
+	
+/******************************************/
+/*************正常运行*******************************/
+	if(argc == 1)
+	{
+		if(videoInst==NULL)
+		{
+			run_err("videoinst is null!!!!\n");
+			goto exit;
+		}
+		Video_StartCapture(videoInst);
+		fd = Video_GetFd(videoInst);
+		while(1)
+		{
+			FD_ZERO(&fds);	
+			FD_SET(fd, &fds); 
+			time.tv_sec = 3;
+			time.tv_usec = 0;
+		
+			ret = select(fd + 1, &fds, NULL, NULL, &time);
+			if(ret < 0)
+			{
+				run_err("select failed!!!\n");
+			}
+			if(ret == 0)
+			{
+				run_err("select time out!!!\n");
+			}
+			if(ret > 0)
+			{
+				Video_GetFrame(videoInst, &vBuff);
+				picFmtTrans(picWd, picHt, (u8*)vBuff.start, dstBuff, YUV_Y);
+		
+		
+				fwrite(srcBuff, 1, srcSize, file);
+				framenum ++;
+				if(framenum == FRAMENUM)
+				{
+					goto exit;
+				}
 			}
 		}
 	}
-#else
+/******************************************/
 
-	while(framenum < 350)
-	{
-	
-	fread(srcBuff, 1, srcSize, filein);
-#if 1
-	picFmtTrans(picWd, picHt, srcBuff, dstBuff, YUV_Y);
-	picFilterAverage(dstWd, dstHt, dstBuff);
-	threshold = picGetThreshold(dstBuff,dstWd,dstHt,100,50);
-	picBinary(dstBuff, dstWd, dstHt, threshold);
-	//picGrad(dstWd, dstHt, dstBuff, 20);
-	//fwrite(dstBuff, 1,dstSize, file);
-	picLinePre(dstBuff,dstWd,dstHt);
-	
-	pic_Hough(dstBuff,dstWd,dstWd,&pR,&pTh);
-	fwrite(dstBuff, 1,dstSize, fileout);
-#endif
-#if 0
-	picFmtTrans(picWd, picHt, srcBuff, UBuff, YUV_U);
-	//picFilterMiddle(dstWd, dstHt, UBuff);
-	//picGrad(dstWd, dstHt, UBuff, 10);
-	fwrite(UBuff, 1,dstSize, fileout);
-
-#endif
-#if 0
-	picFmtTrans(picWd, picHt, srcBuff, VBuff, YUV_V);
-	//picFilterMiddle(dstWd, dstHt, UBuff);
-	//picGrad(dstWd, dstHt, UBuff, 10);
-	fwrite(VBuff, 1,dstSize, fileout);
-#endif
-//	
-//	picFmtTrans(picWd, picHt, srcBuff, VBuff, YUV_V);
-	//picDif(picWd, picHt, UBuff, VBuff, processBuff);
-	//picFilter(dstWd, dstHt, dstBuff, directX);
-	//picFilter(dstWd, dstHt, srcBuff, directY);
-	//picGrad(dstWd, dstHt, processBuff, 20);
-	//Hough(srcBuff, picWd, picHt, &pR, &pTh, 0);
-//	
-	//picFilter(picWd, picHt, srcBuff, directY);
-	//picGrad(picWd, picHt, srcBuff, 100);
-//	fwrite(UBuff, 1,dstSize, fileout);
-//	fwrite(VBuff, 1,dstSize, fileout);
-//	fwrite(dstBuff, 1,dstSize, fileout);
-//	picGetLine(srcBuff, picWd, picHt, &direc, &pos);
-	framenum ++;
-	}
-#if 0
-	while(1)
-	{
-		run_err("test!!!\n");
-		sleep(2);
-	}
-#endif
-#endif
+//	cmdInfo->comInst = comInst;
+//	comGetInit(comInst);
 
 exit:
 	
@@ -246,11 +277,12 @@ exit:
 	{
 		run_err("dev release failed,ret = %d\n",ret);
 	}
-	fclose(file);
-	fclose(filein);
-	fclose(fileout);
+
+
 
 	function_out();
+
+	
 	return ret;
 }	
 

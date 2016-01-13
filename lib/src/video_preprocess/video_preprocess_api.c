@@ -368,7 +368,7 @@ i32 picGetThreshold(u8 *picbuff, i32 wd, i32 ht, i32 startLine, i32 startRow)
 	}
 	if(top2 - ret > 2)
 		ret = top2 - 2;
-	video_err("Threshold:%d\n",ret);
+	video_dbg("Threshold:%d\n",ret);
 	function_out();
 	return ret;
 }

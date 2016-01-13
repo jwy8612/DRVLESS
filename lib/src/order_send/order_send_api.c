@@ -37,8 +37,9 @@ void * Com_Init()
 	video_dbg("fd-open = %d\n",fd);
 	
 	function_out();
-	exit:
 	return comInst;
+	exit:
+	return NULL;
 
 }
 
@@ -238,6 +239,8 @@ i32 getCmd(void *Inst, PCOMMAND_INFO cmdInfo)
 {
 	i32 ret = 0;
 	u8 index = 0;
+
+	u16 serA,serV;
 	i32 lenpos;
 	PMOTOR_CMD_INFO motorCmd 	= &(cmdInfo->motorCmd);
 	PSERVO_CMD_INFO servoCmd 	= &(cmdInfo->servoCmd);
@@ -282,9 +285,11 @@ i32 getCmd(void *Inst, PCOMMAND_INFO cmdInfo)
 			case 1 :
 				cmdbuff[index] = servoCmd->cmdtype;
 				index ++;
-				memcpy(cmdbuff + index, &(servoCmd->servoA), 2);
+				serA = servoCmd->servoA*512/100+512;
+				memcpy(cmdbuff + index, &(serA), 2);
 				index += 2;
-				memcpy(cmdbuff + index, &(servoCmd->servoV), 2);
+				serV= servoCmd->servoV*512/100+512;
+				memcpy(cmdbuff + index, &(serV), 2);
 				index += 2;
 				break;
 			default :
@@ -361,7 +366,7 @@ i32 getCmd(void *Inst, PCOMMAND_INFO cmdInfo)
 	cmdbuff[lenpos] = index - lenpos -1;
 	cmdInfo->dataLength = index + 1;
 	ret = Com_SendData(comInst, cmdbuff, cmdInfo->dataLength);
-	if(ret != index)
+	if(ret != cmdInfo->dataLength)
 	{
 		video_err("com send cmd err!!!\n");
 	}
